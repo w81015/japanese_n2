@@ -7,3 +7,5 @@ tools/__pycache__/
 # 抽取出來的學習資料（data/*.js）有進版控，重新產生請看 README。
 resources/
 *.pdf
+.env
+.env.local

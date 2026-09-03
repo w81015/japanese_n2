@@ -91,9 +91,34 @@ N2 單字與文法的離線學習網站。純靜態（HTML / CSS / 原生 JS）�
 3. 什麼都不用改，直接按 **Deploy**。`vercel.json` 已經指定不安裝套件、不執行建置、直接把根目錄當靜態網站發佈。
 4. 之後每次 `git push` 都會自動重新部署。
 
+### 用密碼鎖住網站
+
+`middleware.js` 會在 Vercel 的邊緣節點對所有請求做 HTTP Basic 驗證。
+沒通過就連 HTML 都拿不到，跟前端密碼框不同（那種只是蓋住畫面，
+`data/*.js` 照樣能直接下載）。
+
+帳密放在 Vercel 的環境變數，不進版控：
+
+1. Vercel 專案 → Settings → Environment Variables
+2. 新增 `SITE_USER` 與 `SITE_PASS`，三個環境（Production／Preview／Development）都勾
+3. 回到 Deployments 重新部署一次（環境變數要重新部署才生效）
+
+**兩個都沒設就完全不啟用**，所以不會發生「設一半把自己鎖在外面」的情況，
+本機直接開 `index.html` 也不受影響。
+
+部署完務必自己驗一次，middleware 沒生效的話網站會靜靜地繼續公開：
+
+```bash
+curl -I https://<你的網址>            # 應該是 HTTP/2 401
+curl -I -u 帳號:密碼 https://<你的網址>  # 應該是 HTTP/2 200
+```
+
+要改密碼就改環境變數再重新部署。要暫時關掉保護就把兩個變數刪掉。
+
 **必要檔案**：`index.html`、`css/`、`js/`、`data/` 這四項缺一不可。
 `manifest.webmanifest` + `icon.svg` 只影響「加到手機主畫面」，`vercel.json`、`package.json`、
-`README.md`、`tools/` 都不影響網站運作，刪掉也能跑。
+`README.md`、`tools/` 都不影響網站運作，刪掉也能跑。`middleware.js` 只在
+Vercel 上生效，本機開檔案不會被它擋。
 
 本機預覽直接用瀏覽器打開 `index.html` 就可以，不需要起伺服器。
 
@@ -213,12 +238,13 @@ python3 pdf_vocab.py && python3 pdf_grammar.py
 
 ### 測試
 
-`tools/` 裡另外有十一支測試，改完程式或資料後跑一次：
+`tools/` 裡另外有十二支測試，改完程式或資料後跑一次：
 
 ```bash
 npm i jsdom
-npm test               # 一次跑完下面十一支
+npm test               # 一次跑完下面十二支
 
+node tools/auth.js     # 密碼保護：未設定不啟用、11 種錯誤認證全擋、matcher 涵蓋範圍
 node tools/audit.js    # 全站互動稽核：CSS 可見性、五個分頁、篩選、字卡、測驗、統計、設定
 node tools/decks.js    # 題庫：資料完整性、紀錄命名空間隔離、依資料決定題型、介面切換
 node tools/paging.js   # 分頁、每頁筆數、中英雙譯開關、例句朗讀內容
@@ -249,7 +275,8 @@ n2-site/
 │   └── app.js              路由、全域事件、設定面板行為
 ├── data/                   學習資料（vocab / grammar / vocab_list / grammar_list）
 ├── js/decks.js             題庫登記表
-├── tools/                  資料產生腳本 + 十一支自動測試
+├── tools/                  資料產生腳本 + 十二支自動測試
+├── middleware.js           Vercel 上的 HTTP Basic 密碼保護
 ├── manifest.webmanifest    PWA
 └── vercel.json             部署設定
 ```
