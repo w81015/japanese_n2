@@ -93,27 +93,34 @@ N2 單字與文法的離線學習網站。純靜態（HTML / CSS / 原生 JS）�
 
 ### 用密碼鎖住網站
 
-`middleware.js` 會在 Vercel 的邊緣節點對所有請求做 HTTP Basic 驗證。
-沒通過就連 HTML 都拿不到，跟前端密碼框不同（那種只是蓋住畫面，
-`data/*.js` 照樣能直接下載）。
+`middleware.js` 會在 Vercel 的邊緣節點擋下所有請求，沒登入就連 HTML 都拿不到，
+跟前端密碼框不同（那種只是蓋住畫面，`data/*.js` 照樣能直接下載）。
+
+登入方式是自己畫的一頁表單，通過後發一個簽名的 cookie（180 天）。
+**不用瀏覽器內建的 Basic 對話框**，因為 Vercel 會把回應裡的 `WWW-Authenticate`
+標頭拿掉，瀏覽器不會跳出對話框，只會把 401 的內容直接畫出來。
+cookie 的內容是「到期時間 + 用密碼簽的 HMAC」，改任何一邊簽章都對不起來，
+密碼本身不會離開伺服器。
 
 帳密放在 Vercel 的環境變數，不進版控：
 
 1. Vercel 專案 → Settings → Environment Variables
-2. 新增 `SITE_USER` 與 `SITE_PASS`，三個環境（Production／Preview／Development）都勾
+2. 新增 `SITE_PASS`（必要）與 `SITE_USER`（可省略，省略時登入頁只問密碼），
+   三個環境（Production／Preview／Development）都勾
 3. 回到 Deployments 重新部署一次（環境變數要重新部署才生效）
 
-**兩個都沒設就完全不啟用**，所以不會發生「設一半把自己鎖在外面」的情況，
+**`SITE_PASS` 沒設就完全不啟用**，所以不會發生「設一半把自己鎖在外面」的情況，
 本機直接開 `index.html` 也不受影響。
 
 部署完務必自己驗一次，middleware 沒生效的話網站會靜靜地繼續公開：
 
 ```bash
-curl -I https://<你的網址>            # 應該是 HTTP/2 401
-curl -I -u 帳號:密碼 https://<你的網址>  # 應該是 HTTP/2 200
+curl -I https://<你的網址>              # 應該是 HTTP/2 401
+curl -I -u 帳號:密碼 https://<你的網址>   # 應該是 HTTP/2 200（Basic 仍相容，方便檢查）
 ```
 
-要改密碼就改環境變數再重新部署。要暫時關掉保護就把兩個變數刪掉。
+改密碼就改環境變數再重新部署——舊的 cookie 是用舊密碼簽的，會立刻全部失效。
+要暫時關掉保護就把 `SITE_PASS` 刪掉。
 
 **必要檔案**：`index.html`、`css/`、`js/`、`data/` 這四項缺一不可。
 `manifest.webmanifest` + `icon.svg` 只影響「加到手機主畫面」，`vercel.json`、`package.json`、
@@ -244,7 +251,7 @@ python3 pdf_vocab.py && python3 pdf_grammar.py
 npm i jsdom
 npm test               # 一次跑完下面十二支
 
-node tools/auth.js     # 密碼保護：未設定不啟用、11 種錯誤認證全擋、matcher 涵蓋範圍
+node tools/auth.js     # 登入保護：未設定不啟用、登入表單、cookie 簽章與偽造、轉址跳板
 node tools/audit.js    # 全站互動稽核：CSS 可見性、五個分頁、篩選、字卡、測驗、統計、設定
 node tools/decks.js    # 題庫：資料完整性、紀錄命名空間隔離、依資料決定題型、介面切換
 node tools/paging.js   # 分頁、每頁筆數、中英雙譯開關、例句朗讀內容
@@ -276,7 +283,7 @@ n2-site/
 ├── data/                   學習資料（vocab / grammar / vocab_list / grammar_list）
 ├── js/decks.js             題庫登記表
 ├── tools/                  資料產生腳本 + 十二支自動測試
-├── middleware.js           Vercel 上的 HTTP Basic 密碼保護
+├── middleware.js           Vercel 上的登入保護（登入頁 + 簽名 cookie）
 ├── manifest.webmanifest    PWA
 └── vercel.json             部署設定
 ```
