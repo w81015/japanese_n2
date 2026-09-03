@@ -4,7 +4,7 @@
   "private": true,
   "description": "N2 日本語學習與測驗（純靜態網站，無建置步驟）",
   "scripts": {
-    "test": "node tools/audit.js && node tools/paging.js && node tools/batch.js && node tools/range.js && node tools/review.js && node tools/journal.js && node tools/cloze.js && node tools/kanji.js && node tools/judge.js && node tools/t.js",
+    "test": "node tools/audit.js && node tools/decks.js && node tools/paging.js && node tools/batch.js && node tools/range.js && node tools/review.js && node tools/journal.js && node tools/cloze.js && node tools/kanji.js && node tools/judge.js && node tools/t.js",
     "audit": "node tools/audit.js",
     "judge": "node tools/judge.js"
   },

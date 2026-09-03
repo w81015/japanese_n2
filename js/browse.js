@@ -4,9 +4,21 @@
   var S = N2.settings;
 
   var state = {
-    vocab: { q: '', pos: '全部', only: '全部', page: 1 },
-    grammar: { q: '', only: '全部', page: 1 }
+    vocab: { q: '', pos: '全部', only: '全部', page: 1, deck: 'v' },
+    grammar: { q: '', only: '全部', page: 1, deck: 'g' }
   };
+
+  /** 題庫切換列（同一種類有兩個以上題庫時才顯示） */
+  function deckChips(kind, cur) {
+    var ds = Decks.ofKind(kind);
+    if (ds.length < 2) return '';
+    return '<div class="opts deck-chips">題庫' +
+      ds.map(function (d) {
+        return '<button class="opt" data-deck="' + d.id + '" aria-pressed="' +
+          (cur === d.id) + '" title="' + N2.esc(d.note) + '">' +
+          N2.esc(d.name) + '<i>' + d.count + '</i></button>';
+      }).join('') + '</div>';
+  }
 
   // ---------- 共用小元件 ----------
   function actions(kind, id, speakText) {
@@ -71,11 +83,12 @@
   }
 
   function batchButtons(kind) {
+    var suffix = kind === 'v' ? 'vocab' : 'grammar';
     return '<div class="btn-group" style="margin:12px 0">' +
-      '<button class="btn primary" id="batch-cards" data-start="cards-' +
-      (kind === 'v' ? 'vocab' : 'grammar') + '">用字卡背這批</button>' +
-      '<button class="btn" id="batch-quiz" data-start="quiz-' +
-      (kind === 'v' ? 'vocab' : 'grammar') + '">測驗這批</button></div>';
+      '<button class="btn primary" id="batch-cards" data-start="cards-' + suffix +
+      '">用字卡背這批</button>' +
+      '<button class="btn" id="batch-quiz" data-start="quiz-' + suffix +
+      '">測驗這批</button></div>';
   }
 
   function slice(arr, page) {
@@ -88,25 +101,28 @@
   }
 
   // ---------- 單字 ----------
-  function vocabEntry(v) {
-    return '<article class="card entry" id="v' + v.id + '">' +
-      actions('v', v.id, v.word) +
-      '<div class="idx">#' + v.id + ' · ' + v.pos + '</div>' +
-      '<div class="jp">' + N2.ruby(v.wordRuby) + '</div>' +
+  function vocabEntry(deck, v) {
+    return '<article class="card entry" id="' + deck + v.id + '">' +
+      actions(deck, v.id, v.word) +
+      '<div class="idx">#' + v.id + ' · ' + N2.esc(v.pos) + '</div>' +
+      '<div class="jp">' + N2.ruby(v.wordRuby || v.word) + '</div>' +
       (S.showZh ? '<div class="zh">' + N2.esc(v.zh) + '</div>' : '') +
       (S.showEn && v.en ? '<div class="en">' + N2.esc(v.en) + '</div>' : '') +
-      exBlock(v.ex, v.exZh, v.exEn) +
+      (v.ex ? exBlock(v.ex, v.exZh, v.exEn)
+            : '<div class="muted no-ex">（這個題庫沒有例句）</div>') +
       '</article>';
   }
 
   function renderVocab(root) {
     var st = state.vocab;
-    var poses = ['全部'].concat(VOCAB.reduce(function (a, v) {
+    var data = Decks.items(st.deck);
+    var poses = ['全部'].concat(data.reduce(function (a, v) {
       if (a.indexOf(v.pos) < 0) a.push(v.pos); return a;
     }, []));
 
     root.innerHTML =
       '<div class="page-head"><h1>單字</h1><span class="muted" id="v-count"></span></div>' +
+      deckChips('v', st.deck) +
       '<div class="filters">' +
       '<input class="search" id="v-q" placeholder="搜尋日文／假名／中文／英文…" value="' +
       N2.esc(st.q) + '"></div>' +
@@ -128,13 +144,13 @@
 
     function list() {
       var q = st.q.trim().toLowerCase();
-      return VOCAB.filter(function (v) {
+      return Decks.items(st.deck).filter(function (v) {
         if (st.pos !== '全部' && v.pos !== st.pos) return false;
-        if (st.only === '待加強' && N2.getMark('v', v.id) !== 'weak') return false;
-        if (st.only === '常錯' && !N2.progress.wrong['v:' + v.id]) return false;
+        if (st.only === '待加強' && N2.getMark(st.deck, v.id) !== 'weak') return false;
+        if (st.only === '常錯' && !N2.progress.wrong[st.deck + ':' + v.id]) return false;
         if (!q) return true;
-        return (v.word + v.reading + v.zh + v.en + N2.plain(v.ex) +
-          v.exZh + v.exEn).toLowerCase().indexOf(q) >= 0;
+        return (v.word + v.reading + v.zh + (v.en || '') + N2.plain(v.ex || '') +
+          (v.exZh || '') + (v.exEn || '')).toLowerCase().indexOf(q) >= 0;
       });
     }
     function paint() {
@@ -142,7 +158,7 @@
       st.page = clampPage(arr.length, st.page);
       var shown = slice(arr, st.page);
       root.querySelector('#v-list').innerHTML = shown.length
-        ? shown.map(vocabEntry).join('')
+        ? shown.map(function (v) { return vocabEntry(st.deck, v); }).join('')
         : '<div class="empty">沒有符合的單字</div>';
       root.querySelector('#v-pager-top').innerHTML = pager(arr.length, st.page, 'v-pg1');
       root.querySelector('#v-pager-bottom').innerHTML = pager(arr.length, st.page, 'v-pg2');
@@ -151,7 +167,7 @@
           ? '顯示 ' + ((st.page - 1) * S.pageSize + 1) + '–' +
             Math.min(st.page * S.pageSize, arr.length) + '，共 '
           : '共 ') + arr.length + ' 個';
-      setBatch(root, 'v', shown);
+      setBatch(root, st.deck, shown);
     }
     paint();
     root.__repaint = paint;
@@ -178,27 +194,31 @@
   }
 
   // ---------- 文法 ----------
-  function gramEntry(g) {
-    var h = '<article class="card entry" id="g' + g.id + '">' +
-      actions('g', g.id, '') +
+  function gramEntry(deck, g) {
+    var h = '<article class="card entry" id="' + deck + g.id + '">' +
+      actions(deck, g.id, '') +
       '<div class="idx">#' + g.id + '</div>' +
-      '<div class="jp">' + N2.esc(g.pattern) + '</div>' +
+      '<div class="jp">' + N2.ruby(g.pattern) + '</div>' +
       (S.showZh ? '<div class="zh">' + N2.esc(g.meaning) + '</div>' : '') +
-      (S.showEn ? '<div class="en">' + N2.esc(g.meaningEn) + '</div>' : '') +
-      '<div class="usage"><b>接續</b>　' + g.usage.map(N2.esc).join('<br>　　　　') + '</div>';
+      (S.showEn && g.meaningEn ? '<div class="en">' + N2.esc(g.meaningEn) + '</div>' : '') +
+      (g.usage && g.usage.length
+        ? '<div class="usage"><b>接續</b>　' +
+          g.usage.map(function (u) { return N2.ruby(u); }).join('<br>　　　　') + '</div>'
+        : '');
     if (g.note && (S.showZh || S.showEn)) {
       h += '<div class="note">' +
         (S.showZh ? '注意：' + N2.esc(g.note) : '') +
-        (S.showZh && S.showEn ? '<br>' : '') +
-        (S.showEn ? '<i>Note: ' + N2.esc(g.noteEn) + '</i>' : '') + '</div>';
+        (S.showZh && S.showEn && g.noteEn ? '<br>' : '') +
+        (S.showEn && g.noteEn ? '<i>Note: ' + N2.esc(g.noteEn) + '</i>' : '') + '</div>';
     }
-    return h + exBlock(g.ex, g.exZh, g.exEn) + '</article>';
+    return h + (g.ex ? exBlock(g.ex, g.exZh, g.exEn) : '') + '</article>';
   }
 
   function renderGrammar(root) {
     var st = state.grammar;
     root.innerHTML =
       '<div class="page-head"><h1>文法</h1><span class="muted" id="g-count"></span></div>' +
+      deckChips('g', st.deck) +
       '<div class="filters">' +
       '<input class="search" id="g-q" placeholder="搜尋文法／中文／英文／例句…" value="' +
       N2.esc(st.q) + '"></div>' +
@@ -215,12 +235,13 @@
 
     function list() {
       var q = st.q.trim().toLowerCase();
-      return GRAMMAR.filter(function (g) {
-        if (st.only === '待加強' && N2.getMark('g', g.id) !== 'weak') return false;
-        if (st.only === '常錯' && !N2.progress.wrong['g:' + g.id]) return false;
+      return Decks.items(st.deck).filter(function (g) {
+        if (st.only === '待加強' && N2.getMark(st.deck, g.id) !== 'weak') return false;
+        if (st.only === '常錯' && !N2.progress.wrong[st.deck + ':' + g.id]) return false;
         if (!q) return true;
-        return (g.pattern + g.meaning + g.meaningEn + g.note + g.noteEn +
-          g.usage.join('') + N2.plain(g.ex) + g.exZh + g.exEn)
+        return (N2.plain(g.pattern) + g.meaning + (g.meaningEn || '') +
+          (g.note || '') + (g.noteEn || '') + (g.usage || []).join('') +
+          N2.plain(g.ex || '') + (g.exZh || '') + (g.exEn || ''))
           .toLowerCase().indexOf(q) >= 0;
       });
     }
@@ -229,7 +250,7 @@
       st.page = clampPage(arr.length, st.page);
       var shown = slice(arr, st.page);
       root.querySelector('#g-list').innerHTML = shown.length
-        ? shown.map(gramEntry).join('')
+        ? shown.map(function (g) { return gramEntry(st.deck, g); }).join('')
         : '<div class="empty">沒有符合的文法</div>';
       root.querySelector('#g-pager-top').innerHTML = pager(arr.length, st.page, 'g-pg1');
       root.querySelector('#g-pager-bottom').innerHTML = pager(arr.length, st.page, 'g-pg2');
@@ -238,7 +259,7 @@
           ? '顯示 ' + ((st.page - 1) * S.pageSize + 1) + '–' +
             Math.min(st.page * S.pageSize, arr.length) + '，共 '
           : '共 ') + arr.length + ' 條';
-      setBatch(root, 'g', shown);
+      setBatch(root, st.deck, shown);
     }
     paint();
     root.__repaint = paint;
@@ -259,6 +280,11 @@
   window.Browse = {
     renderVocab: renderVocab, renderGrammar: renderGrammar,
     setPage: function (route, p) { state[route].page = p; },
-    resetPage: function () { state.vocab.page = 1; state.grammar.page = 1; }
+    resetPage: function () { state.vocab.page = 1; state.grammar.page = 1; },
+    deckOf: function (route) { return state[route].deck; },
+    setDeck: function (route, id) {
+      var st = state[route];
+      st.deck = id; st.page = 1; st.pos = '全部'; st.only = '全部';
+    }
   };
 })();

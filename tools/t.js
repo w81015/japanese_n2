@@ -9,7 +9,7 @@ const sandbox={console,
 };
 sandbox.window=sandbox;
 vm.createContext(sandbox);
-for(const f of ['data/vocab.js','data/grammar.js','js/core.js','js/quiz.js'])
+for(const f of ['data/vocab.js','data/grammar.js','data/vocab_list.js','data/grammar_list.js','js/decks.js','js/core.js','js/quiz.js'])
   vm.runInContext(fs.readFileSync(D+f,'utf8'),sandbox,{filename:f});
 const {N2,Quiz,VOCAB,GRAMMAR}=sandbox;
 
@@ -20,7 +20,7 @@ console.log('chunks:',N2.chunks(s).length);
 console.log('ruby  :',N2.ruby(s).slice(0,70)+'...');
 
 let bad=0;
-for(const scope of ['vocab','grammar']){
+for(const scope of ['v','g']){
   for(const type of ['mc','fill','sort']){
     Quiz.cfg.scope=scope;Quiz.cfg.types=[type];Quiz.cfg.count=200;Quiz.cfg.range='全部';
     if(!Quiz.start()){console.log('FAIL start',scope,type);bad++;continue;}

@@ -11,10 +11,15 @@
   var logView = 'day';    // 'day' | 'week'
   var openKey = null;     // 展開中的那一天／那一週
 
-  /** 把單字與文法合成一份帶 kind 的清單 */
+  /** 把所有題庫合成一份清單；kind 存的是題庫 id（同時是紀錄的命名空間） */
   function allItems() {
-    return VOCAB.map(function (v) { return { kind: 'v', id: v.id, it: v }; })
-      .concat(GRAMMAR.map(function (g) { return { kind: 'g', id: g.id, it: g }; }));
+    var out = [];
+    Decks.all().forEach(function (d) {
+      d.data.forEach(function (x) {
+        out.push({ kind: d.id, deck: d, id: x.id, it: x });
+      });
+    });
+    return out;
   }
 
   /** "v:12" → 該筆資料 */
@@ -30,20 +35,25 @@
   function keyLabel(key) {
     var x = lookup(key);
     if (!x) return N2.esc(key);
-    return x.kind === 'v'
-      ? N2.ruby(x.it.wordRuby) + '<span class="lg-zh">' + N2.esc(x.it.zh) + '</span>'
-      : N2.esc(x.it.pattern) + '<span class="lg-zh">' + N2.esc(x.it.meaning) + '</span>';
+    return Decks.kindOf(x.kind) === 'v'
+      ? N2.ruby(x.it.wordRuby || x.it.word) +
+        '<span class="lg-zh">' + N2.esc(x.it.zh) + '</span>'
+      : N2.ruby(x.it.pattern) +
+        '<span class="lg-zh">' + N2.esc(x.it.meaning) + '</span>';
   }
 
+  /** 各題庫的掌握度，以及依單字／文法彙總 */
   function counts() {
-    var c = { vk: 0, vw: 0, gk: 0, gw: 0 };
-    VOCAB.forEach(function (v) {
-      var m = N2.getMark('v', v.id);
-      if (m === 'known') c.vk++; if (m === 'weak') c.vw++;
-    });
-    GRAMMAR.forEach(function (g) {
-      var m = N2.getMark('g', g.id);
-      if (m === 'known') c.gk++; if (m === 'weak') c.gw++;
+    var c = { vk: 0, vw: 0, gk: 0, gw: 0, vn: 0, gn: 0, byDeck: {} };
+    Decks.all().forEach(function (d) {
+      var k = 0, w = 0;
+      d.data.forEach(function (x) {
+        var m = N2.getMark(d.id, x.id);
+        if (m === 'known') k++; else if (m === 'weak') w++;
+      });
+      c.byDeck[d.id] = { deck: d, known: k, weak: w, total: d.count };
+      if (d.kind === 'v') { c.vk += k; c.vw += w; c.vn += d.count; }
+      else { c.gk += k; c.gw += w; c.gn += d.count; }
     });
     return c;
   }
@@ -55,9 +65,12 @@
   }
 
   function label(x) {
-    return x.kind === 'v'
-      ? N2.ruby(x.it.wordRuby) + '　<span class="muted">' + N2.esc(x.it.zh) + '</span>'
-      : N2.esc(x.it.pattern) + '　<span class="muted">' + N2.esc(x.it.meaning) + '</span>';
+    var tag = '<span class="lg-deck">' + N2.esc(Decks.get(x.kind).short) + '</span>';
+    return Decks.kindOf(x.kind) === 'v'
+      ? N2.ruby(x.it.wordRuby || x.it.word) + tag +
+        '　<span class="muted">' + N2.esc(x.it.zh) + '</span>'
+      : N2.ruby(x.it.pattern) + tag +
+        '　<span class="muted">' + N2.esc(x.it.meaning) + '</span>';
   }
 
   function bar(lbl, done, total, tone) {
@@ -113,8 +126,9 @@
 
     root.innerHTML =
       '<section class="card hero"><h1>今天想練什麼？</h1>' +
-      '<p>' + VOCAB.length + ' 個 N2 單字 · ' + GRAMMAR.length +
-      ' 條 N2 文法。全部離線可用，紀錄存在這台裝置上。</p></section>' +
+      '<p>' + c.vn + ' 個 N2 單字 · ' + c.gn +
+      ' 條 N2 文法，分成 ' + Decks.all().length +
+      ' 個題庫。全部離線可用，紀錄存在這台裝置上。</p></section>' +
 
       plan +
 
@@ -126,16 +140,18 @@
       '</div>' +
 
       '<div class="tiles">' +
-      tile('🃏', '單字字卡', '翻卡背 ' + VOCAB.length + ' 個單字', 'cards-vocab') +
-      tile('📘', '文法字卡', '翻卡背 ' + GRAMMAR.length + ' 條文法', 'cards-grammar') +
+      tile('🃏', '單字字卡', '翻卡背 ' + c.vn + ' 個單字', 'cards-vocab') +
+      tile('📘', '文法字卡', '翻卡背 ' + c.gn + ' 條文法', 'cards-grammar') +
       tile('✍️', '單字測驗', '四選一 · 填空 · 排序', 'quiz-vocab') +
       tile('🧩', '文法測驗', '四選一 · 填空 · 排序', 'quiz-grammar') +
       '</div>' +
 
       '<h3 style="margin:22px 0 10px">進度</h3><div class="card" style="padding:14px 16px">' +
-      bar('單字掌握', c.vk, VOCAB.length) +
-      bar('文法掌握', c.gk, GRAMMAR.length) +
-      bar('★ 待加強', c.vw + c.gw, VOCAB.length + GRAMMAR.length, 'var(--warn)') +
+      Decks.all().map(function (d) {
+        var b = c.byDeck[d.id];
+        return bar(d.name, b.known, b.total);
+      }).join('') +
+      bar('★ 待加強', c.vw + c.gw, c.vn + c.gn, 'var(--warn)') +
       '</div>';
   }
 
@@ -358,26 +374,30 @@
 
     // 依詞性（單字）與 單字/文法
     var byPos = {};
-    VOCAB.forEach(function (v) {
-      var it = N2.progress.items['v:' + v.id];
-      if (!it || !it.a) return;
-      var g = byPos[v.pos] || (byPos[v.pos] = { a: 0, m: 0 });
-      g.a += it.a; g.m += it.m;
+    Decks.ofKind('v').forEach(function (d) {
+      d.data.forEach(function (v) {
+        var it = N2.progress.items[d.id + ':' + v.id];
+        if (!it || !it.a) return;
+        var g = byPos[v.pos] || (byPos[v.pos] = { a: 0, m: 0 });
+        g.a += it.a; g.m += it.m;
+      });
     });
     var posRows = Object.keys(byPos).map(function (p) {
       var g = byPos[p], pct = Math.round((g.a - g.m) / g.a * 100);
       return pctBar(p, pct, g.a, toneFor(pct));
     }).join('');
 
-    var kindAgg = function (arr, kind) {
+    var kindAgg = function (kind) {
       var a = 0, m = 0;
-      arr.forEach(function (x) {
-        var it = N2.progress.items[kind + ':' + x.id];
-        if (it) { a += it.a; m += it.m; }
+      Decks.ofKind(kind).forEach(function (d) {
+        d.data.forEach(function (x) {
+          var it = N2.progress.items[d.id + ':' + x.id];
+          if (it) { a += it.a; m += it.m; }
+        });
       });
       return a ? { pct: Math.round((a - m) / a * 100), n: a } : null;
     };
-    var kv = kindAgg(VOCAB, 'v'), kg = kindAgg(GRAMMAR, 'g');
+    var kv = kindAgg('v'), kg = kindAgg('g');
 
     root.innerHTML =
       '<div class="page-head"><h1>學習統計</h1></div>' +
@@ -449,10 +469,11 @@
       // --- 掌握度與熱力圖 ---
       '<h3 style="margin:20px 0 10px">掌握度</h3>' +
       '<div class="card" style="padding:14px 16px">' +
-      bar('單字 已掌握', c.vk, VOCAB.length, 'var(--ok)') +
-      bar('單字 待加強', c.vw, VOCAB.length, 'var(--warn)') +
-      bar('文法 已掌握', c.gk, GRAMMAR.length, 'var(--ok)') +
-      bar('文法 待加強', c.gw, GRAMMAR.length, 'var(--warn)') + '</div>' +
+      Decks.all().map(function (d) {
+        var b = c.byDeck[d.id];
+        return bar(d.name + ' 已掌握', b.known, b.total, 'var(--ok)') +
+               bar(d.name + ' 待加強', b.weak, b.total, 'var(--warn)');
+      }).join('') + '</div>' +
 
       '<h3 style="margin:20px 0 10px">最近六週</h3>' +
       '<div class="card" style="padding:14px 16px"><div class="heat">' + heat + '</div>' +

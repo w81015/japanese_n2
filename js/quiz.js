@@ -4,15 +4,15 @@
 
   var BLOCK = 5;   // 編號分組大小：1–5、6–10、…
 
-  var cfg = { scope: 'vocab',
+  var cfg = { scope: 'v',      // 題庫 id
               types: ['reading', 'writing', 'cloze', 'mc', 'fill', 'sort'], count: 15,
               range: '全部', customIds: null, customLabel: '',
               blocks: [] };   // 已選的組（存每組起始編號）；空陣列 = 全部
   var run = null;   // { qs:[], i:0, answers:[], answered:false }
 
   function maxId(scope) {
-    var arr = (scope || cfg.scope) === 'grammar' ? GRAMMAR : VOCAB;
-    return arr.reduce(function (m, x) { return x.id > m ? x.id : m; }, 0);
+    return Decks.items(scope || cfg.scope)
+      .reduce(function (m, x) { return x.id > m ? x.id : m; }, 0);
   }
   /** 目前範圍可切成哪些組 */
   function blockList(scope) {
@@ -49,10 +49,8 @@
 
   // ---------- 題目產生 ----------
   function pool() {
-    var items;
-    if (cfg.scope === 'grammar') items = GRAMMAR.slice();
-    else items = VOCAB.slice();
-    var kind = cfg.scope === 'grammar' ? 'g' : 'v';
+    var items = Decks.items(cfg.scope).slice();
+    var kind = cfg.scope;               // 學習紀錄的命名空間就是題庫 id
     items = items.filter(function (x) { return inSelectedBlocks(x.id); });
     if (cfg.range === '待加強') {
       items = items.filter(function (x) { return N2.getMark(kind, x.id) === 'weak'; });
@@ -305,40 +303,80 @@
   }
 
   function makeReading(kind, item) {
-    if (kind !== 'v' || !item.qWord || !item.qKana) return null;
-    var stem = underlineWord(item);
-    if (!stem) return null;
-    var opts = N2.sample(misreadings(item.qKana), 3);
+    if (kind !== 'v') return null;
+    var qw = item.qWord || item.word;
+    var qk = item.qKana || item.reading;
+    if (!qw || !qk || !/[一-鿿]/.test(qw)) return null;
+    // 有例句就把詞放回句子裡畫底線；沒有例句的題庫就單獨考這個詞
+    var stem = (item.ex && item.qWord) ? underlineWord(item) : null;
+    if (!stem) stem = '<span class="ul">' + N2.esc(qw) + '</span>';
+    var opts = N2.sample(misreadings(qk), 3);
     if (opts.length < 3) return null;
     return {
       type: 'reading', kind: kind, id: item.id, item: item,
       typeLabel: '漢字読み', stem: stem,
       sub: '＿＿の言葉の読み方として最もよいものを、一つえらびなさい。',
-      options: N2.shuffle([item.qKana].concat(opts)),
-      correct: item.qKana, jpOptions: true, noFurigana: true
+      options: N2.shuffle([qk].concat(opts)),
+      correct: qk, jpOptions: true, noFurigana: true
     };
   }
 
+  /**
+   * 沒有手寫誘答漢字的題庫，就從同題庫裡挑「字數相同、最好共用一個漢字」的詞當誘答。
+   * 品質不如手寫的同音錯字，但仍然在考漢字與讀音的對應。
+   */
+  function autoKanjiDistractors(item, all, qw) {
+    var mine = qw.split('');
+    var pool = all.filter(function (x) {
+      return x.id !== item.id && x.word && x.word.length === qw.length &&
+        x.word !== qw && /[一-鿿]/.test(x.word);
+    });
+    var shares = N2.shuffle(pool.filter(function (x) {
+      return x.word.split('').some(function (c) { return mine.indexOf(c) >= 0; });
+    }));
+    var rest = N2.shuffle(pool);
+    var out = [];
+    [shares, rest].forEach(function (src) {
+      src.forEach(function (x) {
+        if (out.length < 3 && out.indexOf(x.word) < 0) out.push(x.word);
+      });
+    });
+    return out;
+  }
+
   // ================= 日檢問題2：表記 =================
-  function makeWriting(kind, item) {
-    if (kind !== 'v' || !item.qWord || !item.wrongKanji || item.wrongKanji.length < 3) {
-      return null;
+  function makeWriting(kind, item, all) {
+    if (kind !== 'v') return null;
+    var qw = item.qWord || item.word;
+    var qk = item.qKana || item.reading;
+    if (!qw || !qk || !/[一-鿿]/.test(qw)) return null;
+
+    var opts;
+    if (item.wrongKanji && item.wrongKanji.length >= 3 && item.qStem) {
+      var okuri = qw.slice(item.qStem.length);   // 送假名，四個選項共用
+      opts = item.wrongKanji.slice(0, 3).map(function (k) { return k + okuri; });
+    } else {
+      opts = autoKanjiDistractors(item, all || [], qw);
     }
-    var cut = blankAnno(item.ex, item.qWord);
-    if (!cut) return null;
-    // 句中的目標詞改成假名，選項則是各種漢字寫法
-    var kana = item.qKana;
-    var okuri = item.qWord.slice(item.qStem.length);   // 送假名，四個選項共用
-    var opts = item.wrongKanji.slice(0, 3).map(function (k) { return k + okuri; });
-    var correct = item.qWord;
-    if (opts.indexOf(correct) >= 0) return null;
+    if (opts.length < 3 || opts.indexOf(qw) >= 0) return null;
+
+    // 有例句就把該詞在句中改成假名；沒有例句就單獨給假名
+    var stem = null;
+    if (item.ex && item.qWord) {
+      var cut = blankAnno(item.ex, qw);
+      if (cut) {
+        stem = N2.ruby(cut.pre) + '<span class="ul">' + N2.esc(qk) + '</span>' +
+          N2.ruby(cut.post);
+      }
+    }
+    if (!stem) stem = '<span class="ul">' + N2.esc(qk) + '</span>';
+
     return {
       type: 'writing', kind: kind, id: item.id, item: item,
-      typeLabel: '表記', stem: N2.ruby(cut.pre) +
-        '<span class="ul">' + N2.esc(kana) + '</span>' + N2.ruby(cut.post),
+      typeLabel: '表記', stem: stem,
       sub: '＿＿の言葉を漢字で書くとき、最もよいものを、一つえらびなさい。',
-      options: N2.shuffle([correct].concat(opts)),
-      correct: correct, jpOptions: true, noFurigana: true
+      options: N2.shuffle([qw].concat(opts)),
+      correct: qw, jpOptions: true, noFurigana: true
     };
   }
 
@@ -372,12 +410,27 @@
     };
   }
 
+  var TYPE_LABEL = {
+    reading: '漢字読み', writing: '表記', cloze: '挖空四選一',
+    mc: '語意四選一', fill: '填空', sort: '排序'
+  };
+
   /** 這些題型是四選一，共用選項的渲染與鍵盤操作 */
   var CHOICE_TYPES = ['mc', 'cloze', 'reading', 'writing'];
   function isChoice(q) { return q && CHOICE_TYPES.indexOf(q.type) >= 0; }
 
-  // 只有單字能出的題型（文法沒有漢字讀音／表記可考）
-  var VOCAB_ONLY = ['reading', 'writing'];
+  /** 這個題庫出得了哪些題型（資料裡沒有例句就出不了挖空／填空／排序） */
+  function typesFor(deckId) {
+    var d = Decks.get(deckId), h = d.has, out = [];
+    if (d.kind === 'v') {
+      out.push('reading');
+      out.push('writing');
+    }
+    if (h.ex) { out.push('cloze'); out.push('fill'); }
+    out.push('mc');
+    if (h.chunks) out.push('sort');
+    return out;
+  }
 
   var MAKERS = {
     reading: makeReading,
@@ -391,21 +444,19 @@
   function build() {
     var p = pool();
     if (!p.items.length) return [];
-    var makers = cfg.types.filter(function (t) {
-      if (!MAKERS[t]) return false;
-      if (p.kind !== 'v' && VOCAB_ONLY.indexOf(t) >= 0) return false;
-      return true;
-    });
-    if (!makers.length) makers = ['cloze'];
+    var makers = effectiveTypes().filter(function (t) { return MAKERS[t]; });
+    if (!makers.length) makers = ['mc'];
 
     var src = N2.shuffle(p.items);
     var qs = [], guard = 0, idx = 0;
     while (qs.length < cfg.count && guard++ < cfg.count * 12) {
       var item = src[idx % src.length]; idx++;
       var t = makers[Math.floor(Math.random() * makers.length)];
-      var q = MAKERS[t](p.kind, item, p.items);
-      // 這一題做不出來（例如詞塊太少、湊不到誘答）就退回語意四選一
-      if (!q) q = makeClozeMC(p.kind, item, p.items) || makeMC(p.kind, item, p.items);
+      var k = Decks.kindOf(p.kind);
+      var q = MAKERS[t](k, item, p.items);
+      // 這一題做不出來（例如詞塊太少、湊不到誘答）就退回別的題型
+      if (!q) q = makeClozeMC(k, item, p.items) || makeMC(k, item, p.items);
+      if (q) q.deck = p.kind;
       qs.push(q);
     }
     return qs;
@@ -428,27 +479,27 @@
           ' 個項目　<button class="btn ghost" data-act="clear-custom">改考全部</button></div>'
         : '') +
       '<div class="card setup">' +
-      '<h3>範圍</h3><div class="opts">' + opts('scope',
-        [{ v: 'vocab', t: '單字（' + VOCAB.length + '）' },
-         { v: 'grammar', t: '文法（' + GRAMMAR.length + '）' }], cfg.scope) + '</div>' +
+      '<h3>題庫</h3><div class="opts">' + opts('scope',
+        Decks.all().map(function (d) {
+          return { v: d.id, t: d.name + '（' + d.count + '）' };
+        }), cfg.scope) + '</div>' +
+      '<div class="muted" style="font-size:.8rem;margin:-2px 0 4px">' +
+      N2.esc(Decks.get(cfg.scope).note) + '</div>' +
       rangeBlock() +
       '<h3>挑選</h3><div class="opts">' + opts('range',
         [{ v: '全部', t: '全部' }, { v: '未掌握', t: '未掌握' },
          { v: '待加強', t: '★ 待加強' }, { v: '常錯', t: '常錯題' }], cfg.range) + '</div>' +
       '<h3>題型（可複選）</h3><div class="opts">' +
-      (cfg.scope === 'vocab'
-        ? opts('types', [{ v: 'reading', t: '漢字読み' }, { v: 'writing', t: '表記' }],
-               cfg.types, true)
-        : '') +
-      opts('types',
-        [{ v: 'cloze', t: '挖空四選一' }, { v: 'mc', t: '語意四選一' },
-         { v: 'fill', t: '填空' }, { v: 'sort', t: '排序' }],
-        cfg.types, true) + '</div>' +
+      opts('types', typesFor(cfg.scope).map(function (t) {
+        return { v: t, t: TYPE_LABEL[t] };
+      }), cfg.types, true) + '</div>' +
       '<div class="muted" style="font-size:.8rem;margin-top:6px">' +
-      (cfg.scope === 'vocab'
-        ? '漢字読み＝日檢問題1，看漢字選假名；表記＝問題2，看假名選漢字。'
-        : '') +
-      '挖空四選一＝日檢問題4，句子挖空選詞；語意四選一＝日中互譯。</div>' +
+      (Decks.get(cfg.scope).has.ex
+        ? '挖空四選一＝日檢問題4，句子挖空選詞。'
+        : '這個題庫沒有例句，只能出漢字読み、表記與語意四選一。') +
+      (Decks.kindOf(cfg.scope) === 'v'
+        ? '漢字読み＝問題1（看漢字選假名）；表記＝問題2（看假名選漢字）。' : '') +
+      '</div>' +
       '<h3>題數</h3><div class="opts">' + opts('count',
         [{ v: 5, t: '5' }, { v: 10, t: '10' }, { v: 15, t: '15' },
          { v: 25, t: '25' }, { v: 40, t: '40' }], cfg.count) + '</div>' +
@@ -457,20 +508,49 @@
     updateRangeInfo(root);
   }
 
+  var PAGE = 100;          // 題庫很大時，先用百位分頁再挑 5 個一組
+  var PAGE_MIN = 200;      // 超過這個數量才需要分頁，不然直接列完
+  var blockPage = 0;       // 目前顯示第幾個百位區間
+
   /** 編號範圍：5 個一組，可複選。不選＝全部 */
   function rangeBlock() {
     var sel = validBlocks();
-    var chips = blockList().map(function (b) {
+    var hi = maxId();
+    var paged = hi > PAGE_MIN;
+    var pages = paged ? Math.ceil(hi / PAGE) : 1;
+    if (blockPage >= pages) blockPage = 0;
+
+    var lo = paged ? blockPage * PAGE + 1 : 1;
+    var up = paged ? Math.min((blockPage + 1) * PAGE, hi) : hi;
+
+    var jump = paged
+      ? '<div class="opts blk-page">' + Array.apply(null, Array(pages))
+          .map(function (_, i) {
+            var a = i * PAGE + 1, b = Math.min((i + 1) * PAGE, hi);
+            var picked = sel.filter(function (x) { return x >= a && x <= b; }).length;
+            return '<button class="opt" data-blockpage="' + i + '" aria-pressed="' +
+              (i === blockPage) + '">' + a + '–' + b +
+              (picked ? '<i>' + picked + '</i>' : '') + '</button>';
+          }).join('') + '</div>'
+      : '';
+
+    var chips = blockList().filter(function (b) {
+      return b.s >= lo && b.s <= up;
+    }).map(function (b) {
       return '<button class="opt blk" data-block="' + b.s + '" aria-pressed="' +
         (sel.indexOf(b.s) >= 0) + '">' + b.s + '–' + b.e + '</button>';
     });
+
     return '<h3>編號範圍 <span class="muted">5 個一組，可複選</span></h3>' +
       '<div class="range-row">' +
       '<button class="opt" data-block="all" aria-pressed="' + (sel.length === 0) +
       '">全部</button>' +
       '<span class="muted" id="q-range-info"></span></div>' +
+      jump +
       '<div class="opts blk-grid" id="q-blocks">' + chips.join('') + '</div>';
   }
+
+  function setBlockPage(i) { blockPage = +i || 0; }
 
   function updateRangeInfo(root) {
     var r = root || document;
@@ -595,8 +675,9 @@
 
     run.answers.push({ q: q, ok: ok, you: yourAnswer });
     run.answered = true;
-    N2.logAnswer(q.kind + ':' + q.id, ok, q.type);
-    if (!ok) { N2.progress.marks[q.kind + ':' + q.id] = 'weak'; N2.saveProgress(); }
+    var nsKey = (q.deck || q.kind) + ':' + q.id;
+    N2.logAnswer(nsKey, ok, q.type);
+    if (!ok) { N2.progress.marks[nsKey] = 'weak'; N2.saveProgress(); }
     if (N2.settings.autoSpeak) N2.speak(N2.plain(it.ex));
   }
 
@@ -663,6 +744,17 @@
     renderQ(root);
   }
 
+  /**
+   * cfg.types 是「使用者想考的題型」，不因為換題庫而被刪掉；
+   * 實際出題時才跟這個題庫出得了的取交集。
+   * 這樣從沒有例句的題庫切回來時，原本勾的題型會自己回來。
+   */
+  function effectiveTypes() {
+    var avail = typesFor(cfg.scope);
+    var t = cfg.types.filter(function (x) { return avail.indexOf(x) >= 0; });
+    return t.length ? t : avail.slice();
+  }
+
   function start(overrides) {
     if (overrides) {
       // 從別處指定範圍時（首頁磁磚等），編號範圍回到全部
@@ -691,7 +783,9 @@
     answerMC: answerMC, paintSort: paintSort, isChoice: isChoice,
     misreadings: misreadings,
     BLOCK: BLOCK, maxId: maxId, blockList: blockList,
+    typesFor: typesFor, effectiveTypes: effectiveTypes,
     validBlocks: validBlocks, toggleBlock: toggleBlock,
+    setBlockPage: setBlockPage,
     updateRangeInfo: updateRangeInfo,
     poolSize: function () { return pool().items.length; },
     active: function () { return !!run; },

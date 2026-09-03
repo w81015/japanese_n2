@@ -405,3 +405,25 @@ svg.trend{width:100%;height:150px;display:block;overflow:visible}
   padding:4px 0;border-bottom:1px dashed var(--line)
 }
 .lg-day-line:last-child{border-bottom:0}
+
+/* ---------- 題庫切換 ---------- */
+.deck-chips{align-items:center;font-size:.8rem;color:var(--ink-3);gap:6px;margin-bottom:10px}
+.deck-chips .opt{display:inline-flex;align-items:baseline;gap:6px;padding:6px 12px}
+.deck-chips .opt i{font-style:normal;font-size:.75rem;opacity:.7}
+.no-ex{margin-top:8px;font-size:.8rem}
+.lg-deck{
+  font-size:.66rem;padding:1px 5px;border-radius:5px;margin-left:5px;
+  background:var(--panel-2);color:var(--ink-3);font-weight:700;vertical-align:2px
+}
+
+/* 編號分組的百位快速跳轉 */
+.blk-page{gap:5px;margin-bottom:7px}
+.blk-page .opt{
+  padding:5px 10px;font-size:.78rem;font-variant-numeric:tabular-nums;
+  display:inline-flex;align-items:baseline;gap:5px
+}
+.blk-page .opt i{
+  font-style:normal;font-size:.68rem;background:var(--brand);color:var(--brand-ink);
+  border-radius:99px;padding:0 5px
+}
+.blk-page .opt[aria-pressed="true"] i{background:var(--brand-ink);color:var(--brand)}

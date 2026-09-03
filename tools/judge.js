@@ -6,7 +6,7 @@ const sandbox={console,localStorage:{getItem:k=>store[k]||null,setItem:(k,v)=>st
   matchMedia:()=>({matches:false,addEventListener(){}}),
   document:{documentElement:{setAttribute(){},style:{setProperty(){}}},body:{classList:{toggle(){}}}}};
 sandbox.window=sandbox; vm.createContext(sandbox);
-for(const f of ['data/vocab.js','data/grammar.js','js/core.js','js/quiz.js'])
+for(const f of ['data/vocab.js','data/grammar.js','data/vocab_list.js','data/grammar_list.js','js/decks.js','js/core.js','js/quiz.js'])
   vm.runInContext(fs.readFileSync(D+f,'utf8'),sandbox,{filename:f});
 const {N2,Quiz,VOCAB,GRAMMAR}=sandbox;
 
@@ -17,9 +17,9 @@ const norm=s=>kataToHira(String(s||''))
   .replace(/[\s　～~・"'’”「」（）()]/g,'').toLowerCase();
 
 let bad=0,nf=0,ns=0;
-for(const scope of ['vocab','grammar']){
+for(const scope of ['v','g']){
   Quiz.cfg.scope=scope;Quiz.cfg.range='全部';Quiz.cfg.customIds=null;
-  const all = scope==='vocab'?VOCAB:GRAMMAR;
+  const all = scope==='v'?VOCAB:GRAMMAR;
   Quiz.cfg.count=all.length*3; Quiz.cfg.types=['fill']; Quiz.start();
   const seenFill=new Set();
   while(true){const q=Quiz.current();if(!q)break;
@@ -58,7 +58,7 @@ for(const scope of ['vocab','grammar']){
 }
 console.log(`填空題檢查 ${nf} 筆、排序題檢查 ${ns} 筆`);
 // 抽樣秀出實際題目長相
-Quiz.cfg.scope='grammar';Quiz.cfg.types=['fill'];Quiz.cfg.count=3;Quiz.start();
+Quiz.cfg.scope='g';Quiz.cfg.types=['fill'];Quiz.cfg.count=3;Quiz.start();
 for(let i=0;i<3;i++){const q=Quiz.current();
   console.log(`\n[${q.typeLabel}] ${q.stem.replace(/<[^>]+>/g,'▁▁▁')}\n  可接受答案: ${q.accept.join(' / ')}`);
   Quiz.next();}

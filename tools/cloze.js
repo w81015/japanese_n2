@@ -6,7 +6,7 @@ const sandbox={console,localStorage:{getItem:k=>store[k]||null,setItem:(k,v)=>st
   matchMedia:()=>({matches:false,addEventListener(){}}),
   document:{documentElement:{setAttribute(){},style:{setProperty(){}}},body:{classList:{toggle(){}}}}};
 sandbox.window=sandbox; vm.createContext(sandbox);
-for(const f of ['data/vocab.js','data/grammar.js','js/core.js','js/quiz.js'])
+for(const f of ['data/vocab.js','data/grammar.js','data/vocab_list.js','data/grammar_list.js','js/decks.js','js/core.js','js/quiz.js'])
   vm.runInContext(fs.readFileSync(D+f,'utf8'),sandbox,{filename:f});
 const {N2,Quiz,VOCAB,GRAMMAR}=sandbox;
 const txt=h=>h.replace(/<rt>.*?<\/rt>/g,'').replace(/<[^>]+>/g,m=>m.includes('blank')?'':'')
@@ -15,8 +15,8 @@ const show=h=>h.replace(/<span class="blank">＿＿＿<\/span>/g,'［ ？ ］')
   .replace(/<rt>.*?<\/rt>/g,'').replace(/<\/?ruby>/g,'').replace(/<[^>]*>/g,'');
 
 let bad=0;
-for(const scope of ['vocab','grammar']){
-  Quiz.cfg.scope=scope;Quiz.cfg.types=['cloze'];Quiz.cfg.count=(scope==='vocab'?VOCAB:GRAMMAR).length;
+for(const scope of ['v','g']){
+  Quiz.cfg.scope=scope;Quiz.cfg.types=['cloze'];Quiz.cfg.count=(scope==='v'?VOCAB:GRAMMAR).length;
   Quiz.cfg.range='全部';Quiz.cfg.customIds=null;Quiz.cfg.from=null;Quiz.cfg.to=null;
   Quiz.start();
   let n=0,fallback=0,seen=new Set();

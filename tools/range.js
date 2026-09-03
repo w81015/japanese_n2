@@ -105,7 +105,7 @@ console.log('\n=== 6. 切換單字↔文法 ===');
 click('[data-block="21"]'); click('[data-block="116"]');   // 116 只有單字才有
 JSON.stringify(pressed()) === JSON.stringify(['21–25', '116–120'])
   ? OK('先在單字選兩組') : E('選取: ' + pressed());
-click('[data-set="scope"][data-val="grammar"]');
+click('[data-set="scope"][data-val="g"]');
 pressed().length === 0 ? OK('切到文法後選取自動清空') : E('殘留選取: ' + pressed());
 const gl = blocks().map(b => b.textContent);
 gl.length === Math.ceil(window.GRAMMAR.length / 5) && gl[gl.length - 1] === '81–82'

@@ -12,14 +12,15 @@
     return deck;
   }
 
-  function front(kind, it, dir) {
+  function front(deck, it, dir) {
+    var kind = Decks.kindOf(deck);
     if (kind === 'v') {
       // kanji：只看漢字想讀音；kana：只看假名想漢字（都不給振假名）
       if (dir === 'kanji') return '<span class="no-rt">' + N2.esc(it.word) + '</span>';
       if (dir === 'kana') return N2.esc(it.reading);
-      return dir === 'zh2jp' ? N2.esc(it.zh) : N2.ruby(it.wordRuby);
+      return dir === 'zh2jp' ? N2.esc(it.zh) : N2.ruby(it.wordRuby || it.word);
     }
-    return dir === 'zh2jp' ? N2.esc(it.meaning) : N2.esc(it.pattern);
+    return dir === 'zh2jp' ? N2.esc(it.meaning) : N2.ruby(it.pattern);
   }
 
   function exBox(it) {
@@ -29,32 +30,35 @@
       '</div>';
   }
 
-  function back(kind, it, dir) {
+  function back(deck, it, dir) {
+    var kind = Decks.kindOf(deck);
     var h = '';
     if (kind === 'v') {
       if (dir === 'kanji' || dir === 'kana') {
         // 漢字↔假名模式：背面把兩邊並列，中文只是附註
-        h += '<div class="zh">' + N2.ruby(it.wordRuby) + '</div>';
+        h += '<div class="zh">' + N2.ruby(it.wordRuby || it.word) + '</div>';
         h += '<div class="rd">' + N2.esc(it.reading) + '</div>';
         if (S.showZh) h += '<div class="rd" style="color:var(--ink-2)">' +
           N2.esc(it.zh) + '</div>';
       } else {
         h += '<div class="zh">' +
-          (dir === 'zh2jp' ? N2.ruby(it.wordRuby) : N2.esc(it.zh)) + '</div>';
+          (dir === 'zh2jp' ? N2.ruby(it.wordRuby || it.word) : N2.esc(it.zh)) + '</div>';
         h += '<div class="rd">' + N2.esc(it.reading) +
           (S.showEn && it.en ? '　·　' + N2.esc(it.en) : '') + '</div>';
       }
       if (it.ex) h += exBox(it);
     } else {
-      h += '<div class="zh">' + (dir === 'zh2jp' ? N2.esc(it.pattern) : N2.esc(it.meaning)) + '</div>';
-      if (S.showEn) h += '<div class="rd" style="color:var(--ink-3);font-style:italic">' +
-        N2.esc(it.meaningEn) + '</div>';
-      h += '<div class="rd">' + N2.esc(it.usage[0] || '') + '</div>';
+      h += '<div class="zh">' +
+        (dir === 'zh2jp' ? N2.ruby(it.pattern) : N2.esc(it.meaning)) + '</div>';
+      if (S.showEn && it.meaningEn)
+        h += '<div class="rd" style="color:var(--ink-3);font-style:italic">' +
+          N2.esc(it.meaningEn) + '</div>';
+      h += '<div class="rd">' + N2.ruby((it.usage || [])[0] || '') + '</div>';
       if (it.note && (S.showZh || S.showEn)) {
         h += '<div class="ex" style="background:var(--warn-soft);color:var(--warn)">' +
           (S.showZh ? '注意：' + N2.esc(it.note) : '') +
-          (S.showZh && S.showEn ? '<br>' : '') +
-          (S.showEn ? '<i>Note: ' + N2.esc(it.noteEn) + '</i>' : '') + '</div>';
+          (S.showZh && S.showEn && it.noteEn ? '<br>' : '') +
+          (S.showEn && it.noteEn ? '<i>Note: ' + N2.esc(it.noteEn) + '</i>' : '') + '</div>';
       }
       if (it.ex) h += exBox(it);
     }
@@ -91,11 +95,12 @@
 
     root.innerHTML =
       '<div class="deck-top">' +
-      '<button class="btn ghost" data-go="' + (deck.kind === 'v' ? 'vocab' : 'grammar') + '">← 返回</button>' +
+      '<button class="btn ghost" data-go="' +
+      (Decks.kindOf(deck.kind) === 'v' ? 'vocab' : 'grammar') + '">← 返回</button>' +
       '<div class="progress"><i style="width:' + pct + '%"></i></div>' +
       '<span class="muted">' + (deck.i + 1) + ' / ' + deck.items.length + '</span></div>' +
 
-      (deck.kind === 'v' ? dirBar(deck.dir) : '') +
+      (Decks.kindOf(deck.kind) === 'v' ? dirBar(deck.dir) : '') +
 
       '<div class="card flash" id="flash">' +
       '<div class="front">' + front(deck.kind, it, deck.dir) + '</div>' +
@@ -117,7 +122,9 @@
       '<button class="btn primary" data-act="known">已掌握 ✓</button>' +
       '</div>';
 
-    if (S.autoSpeak) N2.speak(deck.kind === 'v' ? it.word : N2.plain(it.ex));
+    if (S.autoSpeak) {
+      N2.speak(Decks.kindOf(deck.kind) === 'v' ? it.word : N2.plain(it.ex || ''));
+    }
   }
 
   function renderDone(root) {
@@ -126,7 +133,8 @@
       '<p class="muted">共 ' + deck.items.length + ' 張卡片</p>' +
       '<div class="btn-group" style="justify-content:center;margin-top:16px">' +
       '<button class="btn primary" data-act="restart">再來一輪</button>' +
-      '<button class="btn" data-go="' + (deck.kind === 'v' ? 'vocab' : 'grammar') + '">返回清單</button>' +
+      '<button class="btn" data-go="' +
+      (Decks.kindOf(deck.kind) === 'v' ? 'vocab' : 'grammar') + '">返回清單</button>' +
       '<button class="btn" data-go="quiz">去測驗</button></div></div>';
   }
 
@@ -146,7 +154,10 @@
       N2.logCard(k, true);                          // 往上升一格，拉長間隔
       deck.i++; deck.flipped = false;
     }
-    else if (act === 'speak') { N2.speak(deck.kind === 'v' ? it.word : N2.plain(it.ex)); return; }
+    else if (act === 'speak') {
+      N2.speak(Decks.kindOf(deck.kind) === 'v' ? it.word : N2.plain(it.ex || it.pattern));
+      return;
+    }
     else if (act === 'restart') { deck.i = 0; deck.flipped = false; deck.items = N2.shuffle(deck.items); }
     render(root);
   }

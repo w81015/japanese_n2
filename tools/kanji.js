@@ -25,7 +25,7 @@ const underlined = h => (h.match(/<span class="ul">(.*?)<\/span>/) || [, ''])[1]
 
 /** 收集某題型對每個單字產生的題目 */
 function collect(type) {
-  Quiz.cfg.scope = 'vocab'; Quiz.cfg.types = [type];
+  Quiz.cfg.scope = 'v'; Quiz.cfg.types = [type];
   Quiz.cfg.count = VOCAB.length * 3; Quiz.cfg.range = '全部';
   Quiz.cfg.customIds = null; Quiz.cfg.blocks = [];
   Quiz.start();
@@ -121,7 +121,7 @@ console.log('\n=== 3. 表記（問題2）===');
 
 console.log('\n=== 4. 文法不會出這兩種題 ===');
 {
-  Quiz.cfg.scope = 'grammar'; Quiz.cfg.types = ['reading', 'writing'];
+  Quiz.cfg.scope = 'g'; Quiz.cfg.types = ['reading', 'writing'];
   Quiz.cfg.count = 20; Quiz.cfg.blocks = []; Quiz.cfg.customIds = null;
   Quiz.start();
   const types = new Set();
@@ -137,12 +137,12 @@ console.log('\n=== 4. 文法不會出這兩種題 ===');
 console.log('\n=== 5. 實際作答一輪 ===');
 {
   const click = s => {
-    const e = doc.querySelector(s);
+    const e = typeof s === 'string' ? doc.querySelector(s) : s;
     if (!e) { E('找不到 ' + s); return null; }
     e.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); return e;
   };
   click('[data-go="quiz"]');
-  click('[data-set="scope"][data-val="vocab"]');   // 上一段把範圍切成文法了
+  click('[data-set="scope"][data-val="v"]');   // 上一段把範圍切成文法了
   doc.querySelector('[data-set="types"][data-val="reading"]')
     ? OK('切回單字後，設定頁出現「漢字読み／表記」的題型按鈕')
     : E('單字範圍下看不到新題型按鈕');
@@ -178,7 +178,7 @@ console.log('\n=== 5. 實際作答一輪 ===');
 console.log('\n=== 6. 字卡的漢字↔假名模式 ===');
 {
   const click = s => {
-    const e = doc.querySelector(s);
+    const e = typeof s === 'string' ? doc.querySelector(s) : s;
     if (!e) { E('找不到 ' + s); return null; }
     e.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); return e;
   };

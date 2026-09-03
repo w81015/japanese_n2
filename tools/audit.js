@@ -146,7 +146,7 @@ else E('字卡沒有沿用當頁內容');
 
 console.log('\n=== 6. 測驗（四種題型各跑一輪） ===');
 click('[data-go="grammar"]'); click('[data-go="vocab"]'); click('[data-pos="全部"]');
-for (const scope of ['vocab', 'grammar']) {
+for (const scope of ['v', 'g']) {
   for (const type of ['cloze', 'mc', 'fill', 'sort']) {
     click('[data-go="quiz"]');
     click(`[data-set="scope"][data-val="${scope}"]`);

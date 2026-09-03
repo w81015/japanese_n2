@@ -13,7 +13,7 @@
     var active = r;
     if (r === 'cards') {
       var d = Cards.deck();
-      active = (d && d.kind === 'g') ? 'grammar' : 'vocab';
+      active = (d && Decks.kindOf(d.kind) === 'g') ? 'grammar' : 'vocab';
     }
     document.querySelectorAll('.tabs button').forEach(function (b) {
       b.setAttribute('aria-current', b.dataset.go === active ? 'true' : 'false');
@@ -44,8 +44,8 @@
     var set = (route === 'vocab' || route === 'grammar') ? window.__currentSet : null;
 
     /** 「這批」＝清單頁當下那一頁的項目；從首頁磁磚進來則是完整範圍 */
-    function batch(kind, fallback) {
-      return (set && set.kind === kind && set.items.length) ? set.items : fallback;
+    function batch(deckId, fallback) {
+      return (set && set.kind === deckId && set.items.length) ? set.items : fallback;
     }
     /** 用固定的一批項目開測驗：題數配合數量，並清掉編號分組避免互相打架 */
     function quizOn(scope, items, whole) {
@@ -56,14 +56,16 @@
       });
     }
 
-    if (what === 'cards-vocab') {
-      Cards.build('v', batch('v', VOCAB)); go('cards');
-    } else if (what === 'cards-grammar') {
-      Cards.build('g', batch('g', GRAMMAR)); go('cards');
-    } else if (what === 'quiz-vocab') {
-      if (quizOn('vocab', batch('v', VOCAB), VOCAB)) go('quiz');
-    } else if (what === 'quiz-grammar') {
-      if (quizOn('grammar', batch('g', GRAMMAR), GRAMMAR)) go('quiz');
+    if (what === 'cards-vocab' || what === 'cards-grammar' ||
+        what === 'quiz-vocab' || what === 'quiz-grammar') {
+      var isV = what.indexOf('vocab') >= 0;
+      // 從清單頁進來就用該頁選的題庫，從首頁磁磚進來則用預設題庫
+      var deckId = (route === 'vocab' || route === 'grammar')
+        ? Browse.deckOf(route) : (isV ? 'v' : 'g');
+      var whole = Decks.items(deckId);
+      var items = batch(deckId, whole);
+      if (what.indexOf('cards') === 0) { Cards.build(deckId, items); go('cards'); }
+      else if (quizOn(deckId, items, whole)) go('quiz');
     } else if (what === 'review-cards' || what === 'review-quiz' ||
                what === 'learn-new' || what === 'leech-cards') {
       var all = Stats.allItems();
@@ -73,31 +75,34 @@
       else picked = N2.reviewQueue(all).due;
       if (!picked.length) { alert('目前沒有符合的項目。'); return; }
 
+      // 複習清單可能橫跨多個題庫，但字卡與測驗一次只能處理一個，
+      // 所以挑到期項目最多的那個題庫來練
+      var byDeck = {};
+      picked.forEach(function (x) { (byDeck[x.kind] = byDeck[x.kind] || []).push(x); });
+      var best = Object.keys(byDeck).sort(function (a, b) {
+        return byDeck[b].length - byDeck[a].length;
+      })[0];
+      var group = byDeck[best];
+
       if (what === 'review-quiz') {
-        // 測驗一次只能考一種，挑到期項目較多的那邊
-        var vIds = picked.filter(function (x) { return x.kind === 'v'; })
-          .map(function (x) { return x.id; });
-        var gIds = picked.filter(function (x) { return x.kind === 'g'; })
-          .map(function (x) { return x.id; });
-        var useV = vIds.length >= gIds.length;
-        var ids = useV ? vIds : gIds;
-        if (Quiz.start({ scope: useV ? 'vocab' : 'grammar', range: '全部',
-                         customIds: ids, blocks: [],
+        var ids = group.map(function (x) { return x.id; });
+        if (Quiz.start({ scope: best, range: '全部', customIds: ids, blocks: [],
                          count: Math.min(Math.max(ids.length, 5), 40) })) go('quiz');
         return;
       }
-      // 字卡：把到期的單字和文法各自成堆，先練數量多的那種
-      var vItems = picked.filter(function (x) { return x.kind === 'v'; })
-        .map(function (x) { return x.it; });
-      var gItems = picked.filter(function (x) { return x.kind === 'g'; })
-        .map(function (x) { return x.it; });
-      if (vItems.length >= gItems.length) Cards.build('v', vItems, { shuffle: false });
-      else Cards.build('g', gItems, { shuffle: false });
+      Cards.build(best, group.map(function (x) { return x.it; }), { shuffle: false });
       go('cards');
     } else if (what === 'quiz-wrongbook') {
-      var hasV = Object.keys(N2.progress.wrong).some(function (k) { return k[0] === 'v'; });
-      if (Quiz.start({ scope: hasV ? 'vocab' : 'grammar', range: '常錯',
-                       count: 15, customIds: null })) go('quiz');
+      var wrongDecks = {};
+      Object.keys(N2.progress.wrong).forEach(function (k) {
+        var d = k.split(':')[0];
+        wrongDecks[d] = (wrongDecks[d] || 0) + 1;
+      });
+      var pick = Object.keys(wrongDecks).sort(function (a, b) {
+        return wrongDecks[b] - wrongDecks[a];
+      })[0] || 'v';
+      if (Quiz.start({ scope: pick, range: '常錯', count: 15,
+                       customIds: null, blocks: [] })) go('quiz');
     }
   }
 
@@ -127,6 +132,14 @@
       render();
       var el = app.querySelector('[data-logkey="' + lk.dataset.logkey + '"]');
       if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+      return;
+    }
+
+    // 題庫切換（單字／文法清單頁）
+    var dk = t.closest('[data-deck]');
+    if (dk && (route === 'vocab' || route === 'grammar')) {
+      Browse.setDeck(route, dk.dataset.deck);
+      render();
       return;
     }
 
@@ -216,6 +229,12 @@
       }
     }
 
+    // 編號範圍的百位分頁
+    var bp = t.closest('[data-blockpage]');
+    if (bp && route === 'quiz' && !Quiz.active()) {
+      Quiz.setBlockPage(bp.dataset.blockpage); render(); return;
+    }
+
     // 編號範圍：5 個一組，可複選（只切換該顆按鈕，不重繪整頁）
     var blk = t.closest('[data-block]');
     if (blk && route === 'quiz' && !Quiz.active()) {
@@ -236,11 +255,15 @@
       var name = ss.dataset.set, val = ss.dataset.val;
       if (name === 'count') val = +val;
       // 換範圍（單字↔文法）時編號上限不同，選取重設回全部
-      if (name === 'scope' && val !== Quiz.cfg.scope) Quiz.cfg.blocks = [];
+      // 換題庫時編號上限與可出題型都不同，選取與題型都要重算
+      if (name === 'scope' && val !== Quiz.cfg.scope) {
+        Quiz.cfg.blocks = []; Quiz.cfg.customIds = null; Quiz.setBlockPage(0);
+      }
       if (name === 'types') {
         var i = Quiz.cfg.types.indexOf(val);
-        if (i >= 0) { if (Quiz.cfg.types.length > 1) Quiz.cfg.types.splice(i, 1); }
-        else Quiz.cfg.types.push(val);
+        if (i >= 0) {
+          if (Quiz.effectiveTypes().length > 1) Quiz.cfg.types.splice(i, 1);
+        } else Quiz.cfg.types.push(val);
       } else Quiz.cfg[name] = val;
       render();
       return;

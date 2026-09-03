@@ -2,3 +2,8 @@
 node_modules/
 .vercel
 tools/__pycache__/
+
+# 版權素材：考古題與整理表的原始 PDF 不進版控。
+# 抽取出來的學習資料（data/*.js）有進版控，重新產生請看 README。
+resources/
+*.pdf
