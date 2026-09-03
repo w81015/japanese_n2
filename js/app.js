@@ -28,6 +28,7 @@
     else if (route === 'grammar') Browse.renderGrammar(app);
     else if (route === 'cards') Cards.render(app);
     else if (route === 'quiz') Quiz.render(app);
+    else if (route === 'past') Past.render(app);
     else if (route === 'stats') Stats.renderStats(app);
     else Stats.renderHome(app);
   }
@@ -96,6 +97,8 @@
       var wrongDecks = {};
       Object.keys(N2.progress.wrong).forEach(function (k) {
         var d = k.split(':')[0];
+        // 考古題不是題庫，錯題要回考古題頁複習，不能丟給 Quiz
+        if (!Decks.get(d)) return;
         wrongDecks[d] = (wrongDecks[d] || 0) + 1;
       });
       var pick = Object.keys(wrongDecks).sort(function (a, b) {
@@ -114,6 +117,8 @@
     if (goBtn) {
       if (goBtn.dataset.go === 'quiz') Quiz.quit();
       if (t.closest('.tabs') && goBtn.dataset.go === 'quiz') Quiz.cfg.customIds = null;
+      // 從頂列點考古題一律回到大題清單，不要停在上次那一題
+      if (t.closest('.tabs') && goBtn.dataset.go === 'past') Past.home();
       go(goBtn.dataset.go); return;
     }
 
@@ -122,6 +127,32 @@
 
     var sp = t.closest('[data-speak]');
     if (sp) { N2.speak(sp.dataset.speak); return; }
+
+    // 考古題
+    if (route === 'past') {
+      var pj = t.closest('[data-past-jump]');
+      if (pj) { Past.jump(pj.dataset.pastJump); render(); return; }
+      var pc = t.closest('[data-past-choice]');
+      if (pc) { if (Past.answer(+pc.dataset.pastChoice)) render(); return; }
+      var ks = t.closest('[data-key-set]');
+      if (ks) { if (Past.setKey(ks.dataset.keySet)) render(); return; }
+      var pb = t.closest('[data-past]');
+      if (pb) {
+        var w = pb.dataset.past;
+        if (w === 'home') Past.home();
+        else if (w === 'run') Past.open(pb.dataset.sec);
+        else if (w === 'wrong') Past.wrongOnly();
+        else if (w === 'next' || w === 'prev') { if (!Past.nav(w)) return; }
+        else if (w === 'unconfirm') Past.unconfirm();
+        else if (w === 'reset') {
+          if (!confirm('清除這份考卷的作答紀錄？（你校對過的正解會保留）')) return;
+          Past.reset();
+        }
+        render();
+        window.scrollTo(0, 0);
+        return;
+      }
+    }
 
     // 學習日誌：切換每日／每週，或展開某一天
     var lv = t.closest('[data-logview]');
@@ -278,6 +309,16 @@
       else if (e.key === 'ArrowRight') Cards.handle('next', app);
       else if (e.key === 'ArrowLeft') Cards.handle('prev', app);
       else if (e.key.toLowerCase() === 's') Cards.handle('speak', app);
+    } else if (route === 'past' && Past.state.view !== 'home') {
+      var pq = Past.current();
+      if (!pq) return;
+      if (!Past.answered(pq) && /^[1-4]$/.test(e.key)) {
+        if (Past.answer(+e.key)) render();
+      } else if (e.key === 'ArrowRight' || (Past.answered(pq) && e.key === 'Enter')) {
+        if (Past.nav('next')) render();
+      } else if (e.key === 'ArrowLeft') {
+        if (Past.nav('prev')) render();
+      }
     } else if (route === 'quiz' && Quiz.active()) {
       var q = Quiz.current();
       if (!q) return;

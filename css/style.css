@@ -94,6 +94,7 @@ main{
 .btn.ghost{background:transparent}
 .btn.danger{color:var(--bad);border-color:var(--bad)}
 .btn.wide{width:100%;margin-top:14px}
+.btn.sm{padding:6px 11px;font-size:.82rem}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn-group{display:flex;gap:7px;flex-wrap:wrap}
 
@@ -427,3 +428,73 @@ svg.trend{width:100%;height:150px;display:block;overflow:visible}
   border-radius:99px;padding:0 5px
 }
 .blk-page .opt[aria-pressed="true"] i{background:var(--brand-ink);color:var(--brand)}
+
+/* ---------- 考古題 ---------- */
+.warn{
+  margin:12px 0;padding:11px 13px;border-radius:11px;
+  background:var(--warn-soft);color:var(--warn);font-size:.85rem;line-height:1.7
+}
+.warn b{font-weight:800}
+.tag.warn-tag{background:var(--warn-soft);color:var(--warn);margin-left:8px}
+.tag.ok-tag{background:var(--ok-soft);color:var(--ok);margin-left:8px}
+
+.past-sum{
+  display:flex;flex-wrap:wrap;gap:8px 20px;margin:14px 0;
+  font-size:.9rem;color:var(--ink-2)
+}
+.past-sum b{color:var(--ink);font-size:1.05rem;font-weight:800}
+
+.sec-list{display:grid;gap:8px}
+.sec-row{
+  display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;
+  border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:12px 14px
+}
+.sec-row:hover{border-color:var(--brand)}
+.sec-no{
+  flex:none;font-size:.76rem;font-weight:800;color:var(--brand);
+  background:var(--brand-soft);border-radius:8px;padding:4px 8px
+}
+.sec-name{flex:1;font-weight:700;font-size:.98rem}
+.sec-name i{
+  display:block;font-style:normal;font-weight:500;
+  font-size:.78rem;color:var(--ink-3);margin-top:2px
+}
+.sec-stat{flex:none;text-align:right;font-size:.84rem;color:var(--ink-2)}
+.sec-stat i{display:block;font-style:normal;margin-top:3px}
+
+.q-no{
+  float:right;font-weight:700;color:var(--ink-3);
+  letter-spacing:0;font-size:.76rem
+}
+.passage{
+  border:1px solid var(--line);background:var(--panel-2);border-radius:12px;
+  padding:13px 15px;margin:10px 0 4px;font-size:.98rem;line-height:2.05;
+  max-height:44vh;overflow:auto
+}
+.passage p{margin:0 0 10px}
+.passage p:last-child{margin-bottom:0}
+.pg-blank{
+  display:inline-block;min-width:2.4em;text-align:center;font-weight:800;
+  border-bottom:2.5px solid var(--ink-3);color:var(--ink-3);margin:0 3px
+}
+.pg-blank.on{border-color:var(--brand);color:var(--brand);background:var(--brand-soft)}
+
+.keyfix{
+  display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+  margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);font-size:.85rem
+}
+.keyfix-alt{display:inline-flex;align-items:center;gap:5px;color:var(--ink-2)}
+.keyfix .btn.sm{padding:5px 10px;font-size:.8rem}
+
+.past-nav{display:flex;gap:9px;margin-top:16px}
+.past-nav .btn{flex:1}
+.q-jump{display:flex;flex-wrap:wrap;gap:5px;margin-top:14px}
+.jump{
+  min-width:30px;height:28px;border-radius:8px;cursor:pointer;font-size:.76rem;
+  font-weight:700;border:1px solid var(--line);background:var(--panel);color:var(--ink-2)
+}
+.jump.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.jump.ng{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+/* 目前這一題用外框標示，才不會蓋掉答對／答錯的顏色 */
+.jump.on{box-shadow:0 0 0 2px var(--brand)}
+.jump.on:not(.ok):not(.ng){background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}

@@ -4,7 +4,8 @@
 
   var TYPE_NAME = {
     reading: '漢字読み', writing: '表記', cloze: '挖空四選一',
-    mc: '語意四選一', fill: '填空', sort: '排序', card: '字卡'
+    mc: '語意四選一', fill: '填空', sort: '排序', card: '字卡',
+    past: '考古題'
   };
 
   // 學習日誌的檢視狀態
@@ -31,8 +32,26 @@
     }
     return byKey[key];
   }
+  /** "past1:12" → 該考古題題目 */
+  function pastLookup(key) {
+    if (!window.Past) return null;
+    var p = key.split(':');
+    var papers = Past.papers;
+    for (var i = 0; i < papers.length; i++) {
+      if (papers[i].id !== p[0]) continue;
+      var qs = papers[i].items;
+      for (var j = 0; j < qs.length; j++) if (qs[j].id === +p[1]) return qs[j];
+    }
+    return null;
+  }
+
   /** 一個項目在日誌裡的簡短標籤 */
   function keyLabel(key) {
+    var q = pastLookup(key);
+    if (q) {
+      return '<span class="lg-deck">考古</span>第 ' + q.id + ' 題' +
+        '<span class="lg-zh">問題' + q.sec + '　' + N2.esc(q.secName) + '</span>';
+    }
     var x = lookup(key);
     if (!x) return N2.esc(key);
     return Decks.kindOf(x.kind) === 'v'
@@ -146,6 +165,8 @@
       tile('🧩', '文法測驗', '四選一 · 填空 · 排序', 'quiz-grammar') +
       '</div>' +
 
+      pastCard() +
+
       '<h3 style="margin:22px 0 10px">進度</h3><div class="card" style="padding:14px 16px">' +
       Decks.all().map(function (d) {
         var b = c.byDeck[d.id];
@@ -153,6 +174,22 @@
       }).join('') +
       bar('★ 待加強', c.vw + c.gw, c.vn + c.gn, 'var(--warn)') +
       '</div>';
+  }
+
+  /** 首頁的考古題進度條，沒有考卷資料時整塊不出現 */
+  function pastCard() {
+    if (!window.Past || !Past.papers.length) return '';
+    var p = Past.paper(), t = Past.tally(p.items);
+    return '<h3 style="margin:22px 0 10px">考古題</h3>' +
+      '<div class="card" style="padding:14px 16px">' +
+      '<div class="deck-top"><b>' + N2.esc(p.name) + '</b>' +
+      '<span class="muted">' + (t.pct === null ? '尚未作答' : '正確率 ' + t.pct + '%') +
+      '</span></div>' +
+      bar('已作答', t.done, t.n) +
+      bar('已校對正解', t.n - t.unchecked, t.n, 'var(--warn)') +
+      '<div class="btn-group" style="margin-top:10px">' +
+      '<button class="btn" data-go="past">' +
+      (t.done ? '接著作答 →' : '開始作答 →') + '</button></div></div>';
   }
 
   function tile(emoji, title, desc, start) {
@@ -399,6 +436,13 @@
     };
     var kv = kindAgg('v'), kg = kindAgg('g');
 
+    // 考古題不屬於任何題庫，正確率另外算一條
+    var kp = null;
+    if (window.Past && Past.papers.length) {
+      var pt = Past.tally(Past.paper().items);
+      if (pt.done) kp = { pct: pt.pct, n: pt.done };
+    }
+
     root.innerHTML =
       '<div class="page-head"><h1>學習統計</h1></div>' +
 
@@ -442,9 +486,10 @@
       // --- 弱點拆解 ---
       '<h3 style="margin:20px 0 10px">正確率拆解</h3>' +
       '<div class="card" style="padding:14px 16px">' +
-      (kv || kg
+      (kv || kg || kp || typeRows
         ? (kv ? pctBar('單字', kv.pct, kv.n, toneFor(kv.pct)) : '') +
           (kg ? pctBar('文法', kg.pct, kg.n, toneFor(kg.pct)) : '') +
+          (kp ? pctBar('考古題', kp.pct, kp.n, toneFor(kp.pct)) : '') +
           (typeRows ? '<div class="sub-head">依題型</div>' + typeRows : '') +
           (posRows ? '<div class="sub-head">依詞性（單字）</div>' + posRows : '') +
           '<div class="muted" style="margin-top:10px;font-size:.8rem">' +

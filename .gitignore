@@ -7,5 +7,9 @@ tools/__pycache__/
 # 抽取出來的學習資料（data/*.js）有進版控，重新產生請看 README。
 resources/
 *.pdf
+
+# pdf_past.py 的中繼檔，內容已經包含在 data/past.js 裡，不必重複進版控
+tools/past_raw.json
+
 .env
 .env.local

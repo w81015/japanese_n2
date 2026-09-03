@@ -52,6 +52,31 @@ N2 單字與文法的離線學習網站。純靜態（HTML / CSS / 原生 JS）�
   答錯的會標紅並排在前面。每週檢視會把該週各天彙整起來，並列出這週練了哪幾天。
   只翻字卡沒作答的日子一樣算「有學習」，會進連續天數與熱力圖。
 
+**考古題**（獨立分頁）
+
+一回完整的「言語知識（文字・語彙・文法）」，54 題，分成九個大題：
+
+| 大題 | 題型 | 題號 |
+|---|---|---|
+| 問題1 | 漢字読み | 1–5 |
+| 問題2 | 表記 | 6–10 |
+| 問題3 | 語形成 | 11–15 |
+| 問題4 | 文脈規定 | 16–22 |
+| 問題5 | 言い換え類義 | 23–27 |
+| 問題6 | 用法 | 28–32 |
+| 問題7 | 文法形式の判断 | 33–44 |
+| 問題8 | 文の組み立て | 45–49 |
+| 問題9 | 文章の文法 | 50–54 |
+
+可以挑一個大題作答，也可以從頭連續作答；答完立刻看到正解與一句解析，
+題號列用顏色標出答對答錯，隨時可以跳題。問題8 保留卷面的四個空格與★，
+問題9 五題共用同一篇文章，目前作答的那個空格會highlight。
+
+⚠️ **答案是推測的。**原始 PDF 沒有附解答，網站上的正解由 Claude 逐題作答，
+一律標成「待確認」。對過手邊的解答之後，可以在該題按「答案沒問題」或直接改成別的號碼，
+兩種都算校對過，之後判分就以你的為準。校對結果存在另一個 localStorage 鍵，
+按「清除學習紀錄」不會把它洗掉。
+
 **全站統一的顯示切換**（頂部工具列，設定會記住）
 
 | 開關 | 作用 |
@@ -188,11 +213,25 @@ Vercel 上生效，本機開檔案不會被它擋。
   } },
   items: { "v:12": { a, m, s, last, due, box } },   // 每個項目的完整履歷
   //       a=累計作答 m=累計答錯 s=連續答對 last=上次日期 due=下次到期 box=Leitner 盒號
-  types: { reading:{n,ok}, writing:{n,ok}, cloze:{n,ok},
-           mc:{n,ok}, fill:{n,ok}, sort:{n,ok}, card:{n,ok} },
+  types: { reading:{n,ok}, writing:{n,ok}, cloze:{n,ok}, mc:{n,ok},
+           fill:{n,ok}, sort:{n,ok}, card:{n,ok}, past:{n,ok} },
   wrong: { "g:5": 3 }, seen: { "v:1": 2 }, v: 2      // 舊版欄位，保留供相容
 }
 ```
+
+考古題另外存在 `n2.past.v1`，跟學習紀錄分開：
+
+```js
+{
+  keys:  { "past1:12": { n: 3, at: "2026-09-03" } },   // 你校對過的正解
+  picks: { "past1:12": 2 }                             // 你選的答案
+}
+```
+
+分開存的理由是「清除學習紀錄」不該把校對結果一起洗掉——那是花時間對出來的，
+而作答紀錄隨時可以重做。考古題的作答本身仍然會進 `log`、`wrong`、`types.past`，
+所以學習日誌與統計都看得到；但它不進 Leitner 複習佇列（一回考卷是一次性的，
+不適合當間隔重複的素材），錯題要複習就用考古題頁的「只看答錯的」。
 
 舊版（只有 marks/log/wrong/seen）的紀錄會在開啟時自動補出 `items`，原有欄位一個都不刪。
 遷移是依「內容」而非版本號判斷，所以重複開啟不會重跑，也不會漏掉。
@@ -220,6 +259,11 @@ Vercel 上生效，本機開檔案不會被它擋。
 - `trans.py` — 例句中英翻譯、文法的英文意思與注意事項（手寫）
 - `kanji.py` — 表記題的誘答漢字，每個含漢字的單字各 3 個同音／形近錯字（手寫）
 - `gen_data.py` — 合併、驗證標注、計算填空位置，輸出 `data/*.js`
+- `pdf_past.py` — 抽考古題。靠字級與座標分辨內文（11.3pt）、振假名（5.6pt）、
+  題號（9.2pt）與側邊直排標籤；卷面的底線用「線上面有沒有字」分成兩種——
+  有字是問題1・2・5 要考的詞，沒字是問題8 的空格
+- `past_answers.py` — 考古題的答案與解析（手寫，未經官方校對）
+- `gen_past.py` — 合併題目與答案、驗證，輸出 `data/past.js`
 
 ```bash
 pip install openpyxl pdfplumber
@@ -229,6 +273,9 @@ cd tools && python3 parse.py && python3 gen_data.py
 
 # 從 PDF 抽出的題庫（需要 resources/ 裡的原始檔）
 python3 pdf_vocab.py && python3 pdf_grammar.py
+
+# 考古題（7.pdf 前半的文字語彙 ＋ 3.pdf 後半的文法）
+python3 pdf_past.py && python3 gen_past.py
 ```
 
 **原始 PDF 不在版控裡**（`resources/` 已加入 `.gitignore`），因為那是官方考古題
@@ -245,11 +292,11 @@ python3 pdf_vocab.py && python3 pdf_grammar.py
 
 ### 測試
 
-`tools/` 裡另外有十二支測試，改完程式或資料後跑一次：
+`tools/` 裡另外有十三支測試，改完程式或資料後跑一次：
 
 ```bash
 npm i jsdom
-npm test               # 一次跑完下面十二支
+npm test               # 一次跑完下面十三支
 
 node tools/auth.js     # 登入保護：未設定不啟用、登入表單、cookie 簽章與偽造、轉址跳板
 node tools/audit.js    # 全站互動稽核：CSS 可見性、五個分頁、篩選、字卡、測驗、統計、設定
@@ -261,6 +308,7 @@ node tools/review.js   # 複習排程：舊紀錄遷移、Leitner 間隔、到�
 node tools/journal.js  # 學習日誌：逐項明細、使用日期、每週彙整、展開收合、舊紀錄相容
 node tools/cloze.js    # 挖空四選一品質：選項不重複、誘答不模稜兩可、題幹不洩漏答案
 node tools/kanji.js    # 漢字読み／表記：誘答是合法假名、送假名一致、題幹不洩漏答案、字卡四方向
+node tools/past.js     # 考古題：54 題資料完整性、作答流程、校對正解、與首頁統計日誌的串接
 node tools/judge.js    # 判分正確性：204 題填空、165 題排序
 node tools/t.js        # 出題引擎壓力測試：1200 題
 ```
@@ -278,11 +326,12 @@ n2-site/
 │   ├── browse.js           單字／文法瀏覽頁
 │   ├── cards.js            字卡模式
 │   ├── quiz.js             出題引擎（挖空四選一／語意四選一／填空／排序）與判分
+│   ├── past.js             考古題：依大題作答、對答案、校對正解
 │   ├── stats.js            首頁（今天該練什麼）與統計頁（趨勢、弱點拆解）
 │   └── app.js              路由、全域事件、設定面板行為
-├── data/                   學習資料（vocab / grammar / vocab_list / grammar_list）
+├── data/                   學習資料（vocab / grammar / vocab_list / grammar_list / past）
 ├── js/decks.js             題庫登記表
-├── tools/                  資料產生腳本 + 十二支自動測試
+├── tools/                  資料產生腳本 + 十三支自動測試
 ├── middleware.js           Vercel 上的登入保護（登入頁 + 簽名 cookie）
 ├── manifest.webmanifest    PWA
 └── vercel.json             部署設定

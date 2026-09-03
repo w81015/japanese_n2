@@ -413,6 +413,40 @@
     return d.firstElementChild;
   }
 
+  // ---------- 考古題：作答與答案校對 ----------
+  /**
+   * 這一份跟學習紀錄分開存，因為性質不同：考古題 PDF 沒有附解答，
+   * 網站上的正解是推測出來的；使用者校對過的答案是很難重建的東西，
+   * 不該被「清除學習紀錄」一起洗掉。
+   */
+  var AKEY = 'n2.past.v1';
+  var past = read(AKEY, { keys: {}, picks: {} });
+  function savePast() { write(AKEY, past); }
+
+  /** 使用者校對過的正解；沒校對過回 null，由資料檔的推測值遞補 */
+  function pastKey(k) {
+    var v = past.keys[k];
+    return (v && v.n) ? v : null;
+  }
+  /** 確認或修改某題的正解，兩種情況都算「已校對」 */
+  function setPastKey(k, n) {
+    past.keys[k] = { n: n, at: today() };
+    savePast();
+    return past.keys[k];
+  }
+  function clearPastKey(k) { delete past.keys[k]; savePast(); }
+  /** 記住使用者選了哪個選項，檢討時才看得到自己當初的答案 */
+  function pastPick(k) { return past.picks[k] || 0; }
+  function setPastPick(k, n) { past.picks[k] = n; savePast(); }
+  /** 清掉某一份考卷的作答（校對過的正解保留，那是另一回事） */
+  function clearPastPicks(paperId) {
+    Object.keys(past.picks).forEach(function (k) {
+      if (k.indexOf(paperId + ':') === 0) delete past.picks[k];
+    });
+    savePast();
+  }
+  function resetPast() { past.keys = {}; past.picks = {}; savePast(); }
+
   function markKey(kind, id) { return kind + ':' + id; }
 
   function getMark(kind, id) { return progress.marks[markKey(kind, id)] || ''; }
@@ -446,6 +480,10 @@
     ruby: ruby, plain: plain, chunks: chunks, kana: kana, esc: esc,
     speak: speak, getVoices: function () { return voices; },
     shuffle: shuffle, sample: sample, el: el,
-    getMark: getMark, toggleMark: toggleMark, markKey: markKey
+    getMark: getMark, toggleMark: toggleMark, markKey: markKey,
+    pastKey: pastKey, setPastKey: setPastKey, clearPastKey: clearPastKey,
+    pastPick: pastPick, setPastPick: setPastPick,
+    clearPastPicks: clearPastPicks, resetPast: resetPast,
+    pastStore: past
   };
 })();
