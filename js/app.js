@@ -42,20 +42,28 @@
     // 只有正在瀏覽單字／文法清單時，才沿用當下的篩選結果；
     // 從首頁磁磚點進來一律是完整範圍
     var set = (route === 'vocab' || route === 'grammar') ? window.__currentSet : null;
+
+    /** 「這批」＝清單頁當下那一頁的項目；從首頁磁磚進來則是完整範圍 */
+    function batch(kind, fallback) {
+      return (set && set.kind === kind && set.items.length) ? set.items : fallback;
+    }
+    /** 用固定的一批項目開測驗：題數配合數量，並清掉編號分組避免互相打架 */
+    function quizOn(scope, items, whole) {
+      var ids = items === whole ? null : items.map(function (x) { return x.id; });
+      return Quiz.start({
+        scope: scope, range: '全部', customIds: ids, blocks: [],
+        count: ids ? Math.min(Math.max(ids.length, 5), 40) : Quiz.cfg.count
+      });
+    }
+
     if (what === 'cards-vocab') {
-      Cards.build('v', (set && set.kind === 'v' && set.items.length) ? set.items : VOCAB);
-      go('cards');
+      Cards.build('v', batch('v', VOCAB)); go('cards');
     } else if (what === 'cards-grammar') {
-      Cards.build('g', (set && set.kind === 'g' && set.items.length) ? set.items : GRAMMAR);
-      go('cards');
+      Cards.build('g', batch('g', GRAMMAR)); go('cards');
     } else if (what === 'quiz-vocab') {
-      var idsV = (set && set.kind === 'v' && set.items.length < VOCAB.length)
-        ? set.items.map(function (x) { return x.id; }) : null;
-      if (Quiz.start({ scope: 'vocab', customIds: idsV })) go('quiz');
+      if (quizOn('vocab', batch('v', VOCAB), VOCAB)) go('quiz');
     } else if (what === 'quiz-grammar') {
-      var idsG = (set && set.kind === 'g' && set.items.length < GRAMMAR.length)
-        ? set.items.map(function (x) { return x.id; }) : null;
-      if (Quiz.start({ scope: 'grammar', customIds: idsG })) go('quiz');
+      if (quizOn('grammar', batch('g', GRAMMAR), GRAMMAR)) go('quiz');
     } else if (what === 'review-cards' || what === 'review-quiz' ||
                what === 'learn-new' || what === 'leech-cards') {
       var all = Stats.allItems();

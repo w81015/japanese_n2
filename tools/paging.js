@@ -29,25 +29,26 @@ const pageBtns = () => [...app.querySelectorAll('#v-pager-top .page-btn, #g-page
 
 console.log('\n=== 1. 單字分頁 ===');
 click('[data-go="vocab"]');
-entries().length === 10 ? OK('預設每頁 10 個') : E('每頁筆數 ' + entries().length);
+entries().length === 5 ? OK('預設每頁 5 個（跟測驗的編號分組一致）')
+                       : E('每頁筆數 ' + entries().length);
 const labels = pageBtns();
 console.log('  分頁按鈕:', labels.join(' '));
-labels[0] === '1–10' && labels[1] === '11–20' && labels[labels.length - 1] === '121–122'
-  ? OK(`共 ${labels.length} 頁，最後一頁 121–122`) : E('分頁標籤不對');
+labels[0] === '1–5' && labels[1] === '6–10' && labels[labels.length - 1] === '121–122'
+  ? OK(`共 ${labels.length} 頁，最後一頁 121–122`) : E('分頁標籤不對: ' + labels.slice(0,3));
 app.querySelector('#v-count').textContent.includes('共 122 個')
   ? OK('計數列: ' + app.querySelector('#v-count').textContent) : E('計數列不對');
 const firstIds = () => entries().map(e => +e.id.slice(1));
-JSON.stringify(firstIds()) === JSON.stringify([1,2,3,4,5,6,7,8,9,10])
-  ? OK('第 1 頁是 #1–#10') : E('第 1 頁內容: ' + firstIds());
+JSON.stringify(firstIds()) === JSON.stringify([1,2,3,4,5])
+  ? OK('第 1 頁是 #1–#5') : E('第 1 頁內容: ' + firstIds());
 click('[data-page="3"]');
-JSON.stringify(firstIds()) === JSON.stringify([21,22,23,24,25,26,27,28,29,30])
-  ? OK('點「21–30」跳到 #21–#30') : E('第 3 頁內容: ' + firstIds());
+JSON.stringify(firstIds()) === JSON.stringify([11,12,13,14,15])
+  ? OK('點「11–15」跳到 #11–#15') : E('第 3 頁內容: ' + firstIds());
 app.querySelector('[data-page="3"].page-btn').getAttribute('aria-pressed') === 'true'
   ? OK('當前頁高亮') : E('當前頁沒高亮');
-app.querySelector('#v-count').textContent.includes('顯示 21–30')
+app.querySelector('#v-count').textContent.includes('顯示 11–15')
   ? OK('計數列同步: ' + app.querySelector('#v-count').textContent) : E('計數列沒同步');
 click('#v-pager-bottom .opt:last-child');   // ›
-firstIds()[0] === 31 ? OK('下一頁鈕正常') : E('下一頁失敗: ' + firstIds()[0]);
+firstIds()[0] === 16 ? OK('下一頁鈕正常') : E('下一頁失敗: ' + firstIds()[0]);
 
 console.log('\n=== 2. 每頁筆數 ===');
 click('[data-size="20"]');
@@ -56,14 +57,14 @@ pageBtns()[0] === '1–20' ? OK('分頁標籤跟著變成 1–20') : E('標籤�
 click('[data-size="0"]');
 entries().length === 122 ? OK('「全部」一次列出 122 個') : E('全部失敗: ' + entries().length);
 app.querySelector('.pager') === null ? OK('全部模式不顯示分頁列') : E('全部模式仍有分頁列');
-click('[data-size="10"]');
-JSON.parse(window.localStorage.getItem('n2app.settings.v1')).pageSize === 10
+click('[data-size="5"]');
+JSON.parse(window.localStorage.getItem('n2app.settings.v1')).pageSize === 5
   ? OK('每頁筆數有存進 localStorage') : E('沒存檔');
 
 console.log('\n=== 3. 篩選／搜尋後回到第 1 頁 ===');
 click('[data-page="5"]');
 click('[data-pos="動詞"]');
-firstIds()[0] === 62 && entries().length === 10
+firstIds()[0] === 62 && entries().length === 5
   ? OK('換詞性後回到第 1 頁') : E('沒回到第 1 頁: ' + firstIds());
 const vq = doc.querySelector('#v-q');
 click('[data-pos="全部"]'); click('[data-page="7"]');
@@ -74,11 +75,11 @@ vq.value = ''; vq.dispatchEvent(new window.Event('input', { bubbles: true }));
 
 console.log('\n=== 4. 文法分頁 ===');
 click('[data-go="grammar"]');
-entries().length === 10 ? OK('文法也是每頁 10 條') : E('文法每頁 ' + entries().length);
+entries().length === 5 ? OK('文法也是每頁 5 條') : E('文法每頁 ' + entries().length);
 const gl = pageBtns();
 gl[gl.length - 1] === '81–82' ? OK(`文法共 ${gl.length} 頁，最後一頁 81–82`) : E('文法標籤: ' + gl.join(' '));
 click('[data-page="2"]');
-+entries()[0].id.slice(1) === 11 ? OK('文法第 2 頁從 #11 開始') : E('文法翻頁失敗');
++entries()[0].id.slice(1) === 6 ? OK('文法第 2 頁從 #6 開始') : E('文法翻頁失敗');
 
 console.log('\n=== 5. 例句中英翻譯 ===');
 click('[data-go="vocab"]');
@@ -134,7 +135,7 @@ click(entries()[0].querySelector('.ex-speak'));
 spoken[0] === '長時間話し合ったあげく、結論は出なかった。'
   ? OK('文法例句朗讀正確') : E('文法例句朗讀: ' + spoken[0]);
 const exCount = entries().filter(e => e.querySelector('.ex-speak')).length;
-exCount === 10 ? OK('本頁 10 條都有例句朗讀鈕') : E('只有 ' + exCount + ' 條有朗讀鈕');
+exCount === 5 ? OK('本頁 5 條都有例句朗讀鈕') : E('只有 ' + exCount + ' 條有朗讀鈕');
 
 console.log('\n' + (errs.length ? `❌ ${errs.length} 個問題` : '✅ 全部通過'));
 process.exit(errs.length ? 1 : 0);

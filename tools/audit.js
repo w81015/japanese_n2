@@ -28,6 +28,12 @@ const click = sel => {
   return e;
 };
 const disp = sel => window.getComputedStyle(doc.querySelector(sel)).display;
+// 清單頁的「共 N 個」＝篩選後的總數（__currentSet 只有當頁，不能拿來當總數）
+const filtered = sel => {
+  const m = (doc.querySelector(sel) || {}).textContent || '';
+  return +(m.match(/共\s*(\d+)/) || [, 0])[1];
+};
+const onPage = () => app.querySelectorAll('.entry').length;
 
 console.log('\n=== 1. CSS 可見性（[hidden] 是否真的隱藏） ===');
 const bd = '#settings-backdrop';
@@ -59,17 +65,15 @@ for (const [r, key] of [['home', '今天想練什麼'], ['vocab', '單字'],
 
 console.log('\n=== 3. 單字頁 ===');
 click('[data-go="vocab"]');
-const shown = app.querySelectorAll('.entry').length;
-const totalTxt = app.querySelector('#v-count').textContent;
-if (window.__currentSet.items.length === window.VOCAB.length && totalTxt.includes('122'))
-  OK(`篩到全部 122 個（本頁顯示 ${shown} 個）`);
-else E(`筆數不對：${window.__currentSet.items.length} / ${totalTxt}`);
+if (filtered('#v-count') === window.VOCAB.length)
+  OK(`篩到全部 122 個（本頁顯示 ${onPage()} 個）`);
+else E(`筆數不對：${app.querySelector('#v-count').textContent}`);
 if (app.querySelectorAll('ruby').length > 20) OK('振假名 ruby 標籤已產生');
 else E('ruby 數量過少：' + app.querySelectorAll('ruby').length);
 // 詞性篩選
 for (const pos of ['名詞', '動詞', 'い形容詞', 'な形容詞', '副詞', '外來語']) {
   click(`[data-pos="${pos}"]`);
-  const got = window.__currentSet.items.length;
+  const got = filtered('#v-count');
   const want = window.VOCAB.filter(v => v.pos === pos).length;
   if (got === want) OK(`篩選 ${pos}: ${got} 個`);
   else E(`篩選 ${pos} 得到 ${got}，應為 ${want}`);
@@ -79,7 +83,7 @@ click('[data-pos="全部"]');
 const q = doc.querySelector('#v-q');
 for (const [term, min] of [['責任', 1], ['けいけん', 1], ['影響', 1], ['zzzz', 0]]) {
   q.value = term; q.dispatchEvent(new window.Event('input', { bubbles: true }));
-  const got = window.__currentSet.items.length;
+  const got = filtered('#v-count');
   if (term === 'zzzz' ? got === 0 : got >= min) OK(`搜尋「${term}」→ ${got} 筆`);
   else E(`搜尋「${term}」得到 ${got} 筆`);
 }
@@ -104,6 +108,7 @@ if (window.getComputedStyle(app.querySelector('rt')).display !== 'none') OK('重
 else E('假名開不回來');
 
 console.log('\n=== 5. 字卡 ===');
+const pageIds = [...app.querySelectorAll('.entry')].map(e => e.id);
 click('[data-start="cards-vocab"]');
 if (app.querySelector('.flash')) OK('進入字卡');
 else E('字卡沒有開啟');
@@ -115,25 +120,29 @@ else E('初始就翻面了');
 click('#flash');
 if (app.querySelector('.back')) OK('點卡片可翻面');
 else E('翻面失敗');
+const N = pageIds.length;
+const cnt = () => app.querySelector('.deck-top .muted').textContent.trim();
+if (cnt() === `1 / ${N}`) OK(`字卡張數等於當頁項目數（${N} 張）`);
+else E('字卡張數: ' + cnt());
 click('[data-act="next"]');
-if (app.querySelector('.deck-top .muted').textContent.trim() === '2 / 122') OK('下一張正常');
-else E('下一張計數錯誤：' + app.querySelector('.deck-top .muted').textContent);
+if (cnt() === `2 / ${N}`) OK('下一張正常');
+else E('下一張計數錯誤：' + cnt());
 click('[data-act="prev"]');
-if (app.querySelector('.deck-top .muted').textContent.trim() === '1 / 122') OK('上一張正常');
+if (cnt() === `1 / ${N}`) OK('上一張正常');
 else E('上一張計數錯誤');
 click('[data-act="again"]');
-if (app.querySelector('.deck-top .muted').textContent.trim() === '2 / 123') OK('「再看一次」把卡片排到最後');
-else E('再看一次行為錯誤：' + app.querySelector('.deck-top .muted').textContent);
+if (cnt() === `2 / ${N + 1}`) OK('「再看一次」把卡片排到最後');
+else E('再看一次行為錯誤：' + cnt());
 click('[data-act="known"]');
 if (Object.values(window.N2.progress.marks).includes('known')) OK('「已掌握」有寫入紀錄');
 else E('已掌握沒有寫入');
 // 篩選後開字卡只帶篩選結果
 click('[data-go="vocab"]'); click('[data-pos="動詞"]');
-const nVerb = window.__currentSet.items.length;
+const nVerbPage = onPage();
 click('[data-start="cards-vocab"]');
-if (app.querySelector('.deck-top .muted').textContent.includes('/ ' + nVerb))
-  OK(`篩選後字卡只有 ${nVerb} 張`);
-else E('字卡沒有沿用篩選結果');
+if (app.querySelector('.deck-top .muted').textContent.includes('/ ' + nVerbPage))
+  OK(`篩選後字卡帶當頁的 ${nVerbPage} 張`);
+else E('字卡沒有沿用當頁內容');
 
 console.log('\n=== 6. 測驗（四種題型各跑一輪） ===');
 click('[data-go="grammar"]'); click('[data-go="vocab"]'); click('[data-pos="全部"]');

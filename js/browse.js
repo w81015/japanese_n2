@@ -51,10 +51,31 @@
 
   function sizeChips() {
     return '<div class="opts size-chips">每頁' +
-      [10, 20, 50, 0].map(function (n) {
+      [5, 10, 20, 0].map(function (n) {
         return '<button class="opt" data-size="' + n + '" aria-pressed="' +
           (S.pageSize === n) + '">' + (n === 0 ? '全部' : n) + '</button>';
       }).join('') + '</div>';
+  }
+
+  /**
+   * 「這批」＝目前這一頁看到的東西。
+   * 存進 __currentSet 給字卡與測驗用，並把按鈕文字改成實際數量，
+   * 避免畫面顯示 5 個、按下去卻練到 122 個。
+   */
+  function setBatch(root, kind, shown) {
+    window.__currentSet = { kind: kind, items: shown };
+    var n = shown.length;
+    var c = root.querySelector('#batch-cards'), q = root.querySelector('#batch-quiz');
+    if (c) c.textContent = '用字卡背這 ' + n + ' 個';
+    if (q) q.textContent = '測驗這 ' + n + ' 個';
+  }
+
+  function batchButtons(kind) {
+    return '<div class="btn-group" style="margin:12px 0">' +
+      '<button class="btn primary" id="batch-cards" data-start="cards-' +
+      (kind === 'v' ? 'vocab' : 'grammar') + '">用字卡背這批</button>' +
+      '<button class="btn" id="batch-quiz" data-start="quiz-' +
+      (kind === 'v' ? 'vocab' : 'grammar') + '">測驗這批</button></div>';
   }
 
   function slice(arr, page) {
@@ -100,9 +121,7 @@
           (st.only === p) + '">' + p + '</button>';
       }).join('') + '</div>' +
       sizeChips() +
-      '<div class="btn-group" style="margin:12px 0">' +
-      '<button class="btn primary" data-start="cards-vocab">用字卡背這批</button>' +
-      '<button class="btn" data-start="quiz-vocab">測驗這批</button></div>' +
+      batchButtons('v') +
       '<div id="v-pager-top"></div>' +
       '<div class="list" id="v-list"></div>' +
       '<div id="v-pager-bottom"></div>';
@@ -132,7 +151,7 @@
           ? '顯示 ' + ((st.page - 1) * S.pageSize + 1) + '–' +
             Math.min(st.page * S.pageSize, arr.length) + '，共 '
           : '共 ') + arr.length + ' 個';
-      window.__currentSet = { kind: 'v', items: arr };
+      setBatch(root, 'v', shown);
     }
     paint();
     root.__repaint = paint;
@@ -189,9 +208,7 @@
           (st.only === p) + '">' + p + '</button>';
       }).join('') + '</div>' +
       sizeChips() +
-      '<div class="btn-group" style="margin:12px 0">' +
-      '<button class="btn primary" data-start="cards-grammar">用字卡背這批</button>' +
-      '<button class="btn" data-start="quiz-grammar">測驗這批</button></div>' +
+      batchButtons('g') +
       '<div id="g-pager-top"></div>' +
       '<div class="list" id="g-list"></div>' +
       '<div id="g-pager-bottom"></div>';
@@ -221,7 +238,7 @@
           ? '顯示 ' + ((st.page - 1) * S.pageSize + 1) + '–' +
             Math.min(st.page * S.pageSize, arr.length) + '，共 '
           : '共 ') + arr.length + ' 條';
-      window.__currentSet = { kind: 'g', items: arr };
+      setBatch(root, 'g', shown);
     }
     paint();
     root.__repaint = paint;

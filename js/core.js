@@ -9,8 +9,9 @@
   var DEFAULT_SETTINGS = {
     showFurigana: true, showZh: true, showEn: true, showEx: true, autoSpeak: false,
     fontSize: 100, rate: 0.9, voiceURI: '', theme: 'auto',
-    pageSize: 10
+    pageSize: 5   // 一頁 5 個，跟測驗的編號分組一致
   };
+  var SETTINGS_VERSION = 2;   // 每頁筆數從 10 改成 5 時遞增
   /* progress 結構
    * marks : { "v:12": "weak" | "known" }              手動標記
    * log   : { "2026-09-03": { n, ok, byType:{mc:{n,ok},…} } }   每日作答
@@ -42,6 +43,14 @@
 
   var settings = read(SKEY, DEFAULT_SETTINGS);
   var progress = read(PKEY, DEFAULT_PROGRESS);
+
+  // 設定升級：舊版存的 pageSize 是 10，會蓋掉新的預設值，這裡改回來一次。
+  // 之後使用者自己改的值有 sv 標記，就不會再被動到。
+  if (settings.sv !== SETTINGS_VERSION) {
+    if (settings.pageSize === 10) settings.pageSize = DEFAULT_SETTINGS.pageSize;
+    settings.sv = SETTINGS_VERSION;
+    write(SKEY, settings);
+  }
 
   /**
    * 舊版紀錄升級：保留原本欄位，補出 items／types，不刪任何東西。
