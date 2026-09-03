@@ -74,7 +74,7 @@
         var useV = vIds.length >= gIds.length;
         var ids = useV ? vIds : gIds;
         if (Quiz.start({ scope: useV ? 'vocab' : 'grammar', range: '全部',
-                         customIds: ids, from: null, to: null,
+                         customIds: ids, blocks: [],
                          count: Math.min(Math.max(ids.length, 5), 40) })) go('quiz');
         return;
       }
@@ -163,9 +163,6 @@
       else if (a === 'next-q') { Quiz.next(); render(); }
       else if (a === 'quiz-quit') { Quiz.quit(); render(); }
       else if (a === 'clear-custom') { Quiz.cfg.customIds = null; render(); }
-      else if (a === 'range-all') {
-        Quiz.cfg.from = null; Quiz.cfg.to = null; render();
-      }
       else if (a === 'quiz-again') { if (Quiz.again()) render(); }
       else if (a === 'quiz-wrong') { Quiz.retryWrong(); render(); }
       else if (a === 'say') { var c = Quiz.current(); if (c) N2.speak(N2.plain(c.item.ex)); }
@@ -197,12 +194,17 @@
       }
     }
 
-    // 編號範圍的快速區塊（1–20、21–40…）
-    var pre = t.closest('[data-preset]');
-    if (pre) {
-      var seg = pre.dataset.preset.split('-');
-      Quiz.cfg.from = +seg[0]; Quiz.cfg.to = +seg[1];
-      render();
+    // 編號範圍：5 個一組，可複選（只切換該顆按鈕，不重繪整頁）
+    var blk = t.closest('[data-block]');
+    if (blk && route === 'quiz' && !Quiz.active()) {
+      Quiz.toggleBlock(blk.dataset.block);
+      var sel = Quiz.validBlocks();
+      app.querySelectorAll('[data-block]').forEach(function (b) {
+        b.setAttribute('aria-pressed', b.dataset.block === 'all'
+          ? sel.length === 0
+          : sel.indexOf(+b.dataset.block) >= 0);
+      });
+      Quiz.updateRangeInfo(app);
       return;
     }
 
@@ -211,10 +213,8 @@
     if (ss) {
       var name = ss.dataset.set, val = ss.dataset.val;
       if (name === 'count') val = +val;
-      // 換範圍（單字↔文法）時編號上限不同，重設回全部
-      if (name === 'scope' && val !== Quiz.cfg.scope) {
-        Quiz.cfg.from = null; Quiz.cfg.to = null;
-      }
+      // 換範圍（單字↔文法）時編號上限不同，選取重設回全部
+      if (name === 'scope' && val !== Quiz.cfg.scope) Quiz.cfg.blocks = [];
       if (name === 'types') {
         var i = Quiz.cfg.types.indexOf(val);
         if (i >= 0) { if (Quiz.cfg.types.length > 1) Quiz.cfg.types.splice(i, 1); }
@@ -224,32 +224,6 @@
       return;
     }
   });
-
-  // ---------- 編號範圍輸入（邊打邊更新，不重繪以免游標跳掉） ----------
-  document.addEventListener('input', function (e) {
-    if (route !== 'quiz' || Quiz.active()) return;
-    if (e.target.id !== 'q-from' && e.target.id !== 'q-to') return;
-    var v = e.target.value.trim();
-    Quiz.cfg[e.target.id === 'q-from' ? 'from' : 'to'] = v === '' ? null : +v;
-    Quiz.updateRangeInfo(app);
-    // 手動輸入後取消區塊按鈕的選取狀態
-    var b = Quiz.bounds();
-    app.querySelectorAll('[data-preset]').forEach(function (btn) {
-      var s = btn.dataset.preset.split('-');
-      btn.setAttribute('aria-pressed', +s[0] === b.from && +s[1] === b.to);
-    });
-  });
-  // 離開輸入框時把值夾回合法範圍並補回顯示
-  document.addEventListener('blur', function (e) {
-    if (route !== 'quiz' || Quiz.active()) return;
-    if (e.target.id !== 'q-from' && e.target.id !== 'q-to') return;
-    var b = Quiz.bounds();
-    Quiz.cfg.from = b.from; Quiz.cfg.to = b.to;
-    var f = app.querySelector('#q-from'), t2 = app.querySelector('#q-to');
-    if (f) f.value = b.from;
-    if (t2) t2.value = b.to;
-    Quiz.updateRangeInfo(app);
-  }, true);
 
   // ---------- 鍵盤 ----------
   document.addEventListener('keydown', function (e) {

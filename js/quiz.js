@@ -2,25 +2,33 @@
 (function () {
   'use strict';
 
+  var BLOCK = 5;   // 編號分組大小：1–5、6–10、…
+
   var cfg = { scope: 'vocab', types: ['cloze', 'mc', 'fill', 'sort'], count: 15,
               range: '全部', customIds: null, customLabel: '',
-              from: null, to: null };   // 編號範圍，null = 不限
+              blocks: [] };   // 已選的組（存每組起始編號）；空陣列 = 全部
   var run = null;   // { qs:[], i:0, answers:[], answered:false }
 
   function maxId(scope) {
     var arr = (scope || cfg.scope) === 'grammar' ? GRAMMAR : VOCAB;
     return arr.reduce(function (m, x) { return x.id > m ? x.id : m; }, 0);
   }
-  /** 把編號範圍夾回合法值，回傳 {from,to} */
-  function bounds() {
+  /** 目前範圍可切成哪些組 */
+  function blockList(scope) {
+    var hi = maxId(scope), out = [];
+    for (var s = 1; s <= hi; s += BLOCK) out.push({ s: s, e: Math.min(s + BLOCK - 1, hi) });
+    return out;
+  }
+  /** 丟掉超出目前範圍的選取（例如從單字切到文法） */
+  function validBlocks() {
     var hi = maxId();
-    var f = parseInt(cfg.from, 10), t = parseInt(cfg.to, 10);
-    if (!(f >= 1)) f = 1;
-    if (!(t >= 1)) t = hi;
-    f = Math.min(Math.max(f, 1), hi);
-    t = Math.min(Math.max(t, 1), hi);
-    if (f > t) { var tmp = f; f = t; t = tmp; }
-    return { from: f, to: t, max: hi };
+    return (cfg.blocks || []).filter(function (s) { return s >= 1 && s <= hi; })
+      .sort(function (a, b) { return a - b; });
+  }
+  function inSelectedBlocks(id) {
+    var sel = validBlocks();
+    if (!sel.length) return true;                       // 沒選就是全部
+    return sel.some(function (s) { return id >= s && id < s + BLOCK; });
   }
 
   // ---------- 文字正規化（填空判定） ----------
@@ -44,8 +52,7 @@
     if (cfg.scope === 'grammar') items = GRAMMAR.slice();
     else items = VOCAB.slice();
     var kind = cfg.scope === 'grammar' ? 'g' : 'v';
-    var b = bounds();
-    items = items.filter(function (x) { return x.id >= b.from && x.id <= b.to; });
+    items = items.filter(function (x) { return inSelectedBlocks(x.id); });
     if (cfg.range === '待加強') {
       items = items.filter(function (x) { return N2.getMark(kind, x.id) === 'weak'; });
     } else if (cfg.range === '常錯') {
@@ -315,34 +322,43 @@
     updateRangeInfo(root);
   }
 
-  /** 編號範圍：第 N 個到第 M 個 */
+  /** 編號範圍：5 個一組，可複選。不選＝全部 */
   function rangeBlock() {
-    var b = bounds();
-    var presets = [];
-    for (var s = 1; s <= b.max; s += 20) {
-      var e = Math.min(s + 19, b.max);
-      presets.push('<button class="opt" data-preset="' + s + '-' + e + '"' +
-        ' aria-pressed="' + (b.from === s && b.to === e) + '">' + s + '–' + e + '</button>');
-    }
-    return '<h3>編號範圍</h3>' +
-      '<div class="range-row">第' +
-      '<input type="number" class="num" id="q-from" min="1" max="' + b.max +
-      '" value="' + b.from + '" inputmode="numeric">個 到 第' +
-      '<input type="number" class="num" id="q-to" min="1" max="' + b.max +
-      '" value="' + b.to + '" inputmode="numeric">個' +
-      '<button class="btn ghost" data-act="range-all">全部</button>' +
+    var sel = validBlocks();
+    var chips = blockList().map(function (b) {
+      return '<button class="opt blk" data-block="' + b.s + '" aria-pressed="' +
+        (sel.indexOf(b.s) >= 0) + '">' + b.s + '–' + b.e + '</button>';
+    });
+    return '<h3>編號範圍 <span class="muted">5 個一組，可複選</span></h3>' +
+      '<div class="range-row">' +
+      '<button class="opt" data-block="all" aria-pressed="' + (sel.length === 0) +
+      '">全部</button>' +
       '<span class="muted" id="q-range-info"></span></div>' +
-      '<div class="opts" style="margin-top:8px">' + presets.join('') + '</div>';
+      '<div class="opts blk-grid" id="q-blocks">' + chips.join('') + '</div>';
   }
 
   function updateRangeInfo(root) {
-    var info = (root || document).querySelector('#q-range-info');
+    var r = root || document;
+    var info = r.querySelector('#q-range-info');
     if (!info) return;
-    var b = bounds();
+    var sel = validBlocks();
     var n = pool().items.length;
-    info.textContent = '共 ' + n + ' 項可出題' +
-      (b.from === 1 && b.to === b.max ? '' : '（第 ' + b.from + '–' + b.to + ' 個）');
+    info.textContent = sel.length
+      ? '已選 ' + sel.length + ' 組，共 ' + n + ' 項'
+      : '全部 ' + n + ' 項';
     info.style.color = n ? '' : 'var(--bad)';
+    var all = r.querySelector('[data-block="all"]');
+    if (all) all.setAttribute('aria-pressed', sel.length === 0);
+  }
+
+  /** 點一組：已選就取消、沒選就加入；點「全部」則清空選取 */
+  function toggleBlock(val) {
+    if (val === 'all') { cfg.blocks = []; return; }
+    var s = +val;
+    var sel = validBlocks();
+    var i = sel.indexOf(s);
+    if (i >= 0) sel.splice(i, 1); else sel.push(s);
+    cfg.blocks = sel.sort(function (a, b) { return a - b; });
   }
 
   function renderQ(root) {
@@ -516,15 +532,17 @@
     if (overrides) {
       // 從別處指定範圍時（首頁磁磚等），編號範圍回到全部
       if (overrides.scope && overrides.scope !== cfg.scope &&
-          overrides.from === undefined) { cfg.from = null; cfg.to = null; }
+          overrides.blocks === undefined) { cfg.blocks = []; }
       for (var k in overrides) cfg[k] = overrides[k];
     }
-    var b = bounds();
-    cfg.from = b.from; cfg.to = b.to;
+    cfg.blocks = validBlocks();
     var qs = build();
     if (!qs.length) {
-      alert('第 ' + b.from + '–' + b.to + ' 個之中，沒有符合「' + cfg.range +
-            '」的項目。請放寬編號範圍或改選「全部」。');
+      var sel = cfg.blocks;
+      alert(sel.length
+        ? '你選的 ' + sel.length + ' 組之中，沒有符合「' + cfg.range +
+          '」的項目。請多選幾組或把「挑選」改成全部。'
+        : '沒有符合「' + cfg.range + '」的項目。');
       return false;
     }
     run = { qs: qs, i: 0, answers: [], answered: false };
@@ -536,7 +554,9 @@
   window.Quiz = {
     cfg: cfg, render: render, start: start, next: next, check: check,
     answerMC: answerMC, paintSort: paintSort,
-    bounds: bounds, maxId: maxId, updateRangeInfo: updateRangeInfo,
+    BLOCK: BLOCK, maxId: maxId, blockList: blockList,
+    validBlocks: validBlocks, toggleBlock: toggleBlock,
+    updateRangeInfo: updateRangeInfo,
     poolSize: function () { return pool().items.length; },
     active: function () { return !!run; },
     current: function () { return run ? run.qs[run.i] : null; },
