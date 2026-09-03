@@ -242,6 +242,12 @@ rt{font-size:.5em;color:var(--ink-3);font-weight:500;letter-spacing:0}
 .q-stem{font-size:1.3rem;font-weight:700;margin:8px 0 4px;word-break:break-word}
 .q-stem.q-cloze{font-size:1.18rem;font-weight:600;line-height:2.1}
 .q-cloze .blank{min-width:6em;border-bottom-width:3px}
+/* 日檢的漢字読み／表記題不給振假名，否則等於送答案 */
+.q-noruby rt{display:none}
+.q-stem .ul{
+  border-bottom:2.5px solid var(--brand);padding:0 2px;
+  color:var(--brand);font-weight:750
+}
 .q-sub{color:var(--ink-3);font-size:.88rem}
 .choices{display:grid;gap:9px;margin-top:16px}
 .choice{
@@ -348,3 +354,6 @@ svg.trend{width:100%;height:150px;display:block;overflow:visible}
   .flash .front{font-size:1.7rem}
   main{padding-top:12px}
 }
+
+/* 字卡「漢字 → 假名」模式：正面不給注音 */
+.flash .no-rt rt{display:none}

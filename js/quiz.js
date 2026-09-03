@@ -4,7 +4,8 @@
 
   var BLOCK = 5;   // 編號分組大小：1–5、6–10、…
 
-  var cfg = { scope: 'vocab', types: ['cloze', 'mc', 'fill', 'sort'], count: 15,
+  var cfg = { scope: 'vocab',
+              types: ['reading', 'writing', 'cloze', 'mc', 'fill', 'sort'], count: 15,
               range: '全部', customIds: null, customLabel: '',
               blocks: [] };   // 已選的組（存每組起始編號）；空陣列 = 全部
   var run = null;   // { qs:[], i:0, answers:[], answered:false }
@@ -228,6 +229,119 @@
     };
   }
 
+  // ================= 日檢問題1：漢字読み =================
+  // 誘答不是別的單字的讀音（那樣太好猜），而是把正解讀音做「典型的誤讀變形」：
+  // 長音有無、促音有無、濁音清音、拗音有無 —— 跟真正的日檢一樣。
+  var VOICED = {
+    'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご',
+    'さ': 'ざ', 'し': 'じ', 'す': 'ず', 'せ': 'ぜ', 'そ': 'ぞ',
+    'た': 'だ', 'ち': 'ぢ', 'つ': 'づ', 'て': 'で', 'と': 'ど',
+    'は': 'ば', 'ひ': 'び', 'ふ': 'ぶ', 'へ': 'べ', 'ほ': 'ぼ'
+  };
+  var UNVOICED = {};
+  Object.keys(VOICED).forEach(function (k) { UNVOICED[VOICED[k]] = k; });
+  // 長音只會接在「お段」後面加う、「え段」後面加い。
+  // 這兩串必須是單一字元（拗音的長音靠小字「ょ」代表，例如きょう）。
+  var O_ROW = 'おこそとのほもよろごぞどぼぽょ';
+  var E_ROW = 'えけせてねへめれげぜでべぺ';
+  var SMALL = { 'ゃ': 'や', 'ゅ': 'ゆ', 'ょ': 'よ' };
+  var I_ROW = 'きしちにひみりぎじびぴ';   // 拗音只接在い段後面
+
+  /** 產生一批「聽起來很像但錯的」讀音 */
+  function misreadings(r) {
+    var out = [];
+    var push = function (s) { if (s && s !== r && out.indexOf(s) < 0) out.push(s); };
+    var i;
+
+    // 1. 長音：有 → 拿掉；沒有 → 加上
+    for (i = 1; i < r.length; i++) {
+      if (r[i] === 'う' && O_ROW.indexOf(r[i - 1]) >= 0) push(r.slice(0, i) + r.slice(i + 1));
+      if (r[i] === 'い' && E_ROW.indexOf(r[i - 1]) >= 0) push(r.slice(0, i) + r.slice(i + 1));
+    }
+    for (i = 0; i < r.length; i++) {
+      if (O_ROW.indexOf(r[i]) >= 0 && r[i + 1] !== 'う') push(r.slice(0, i + 1) + 'う' + r.slice(i + 1));
+      if (E_ROW.indexOf(r[i]) >= 0 && r[i + 1] !== 'い') push(r.slice(0, i + 1) + 'い' + r.slice(i + 1));
+    }
+    // 2. 促音：有 → 拿掉；沒有 → 在か・さ・た・ぱ行前插入
+    if (r.indexOf('っ') >= 0) push(r.replace('っ', ''));
+    for (i = 1; i < r.length; i++) {
+      if ('かきくけこさしすせそたちつてとぱぴぷぺぽ'.indexOf(r[i]) >= 0 && r[i - 1] !== 'っ') {
+        push(r.slice(0, i) + 'っ' + r.slice(i));
+      }
+    }
+    // 3. 濁音 ↔ 清音
+    for (i = 0; i < r.length; i++) {
+      if (VOICED[r[i]]) push(r.slice(0, i) + VOICED[r[i]] + r.slice(i + 1));
+      if (UNVOICED[r[i]]) push(r.slice(0, i) + UNVOICED[r[i]] + r.slice(i + 1));
+    }
+    // 4. 拗音：小字 → 大字；い段字後面多一個小字
+    for (i = 0; i < r.length; i++) {
+      if (SMALL[r[i]]) push(r.slice(0, i) + SMALL[r[i]] + r.slice(i + 1));
+    }
+    for (i = 0; i < r.length; i++) {
+      if (I_ROW.indexOf(r[i]) >= 0 && !SMALL[r[i + 1]]) {
+        push(r.slice(0, i + 1) + 'ょ' + r.slice(i + 1));
+        push(r.slice(0, i + 1) + 'ゅ' + r.slice(i + 1));
+      }
+    }
+    // 5. 撥音「ん」的有無 —— 例：いじ ↔ いんじ
+    if (r.indexOf('ん') >= 0) push(r.replace('ん', ''));
+    for (i = 1; i < r.length; i++) {
+      // 不能插在小字前面（んょ 之類不是合法的假名組合）
+      if (r[i] !== 'ん' && !SMALL[r[i]] && r[i - 1] !== 'ん' && r[i - 1] !== 'っ') {
+        push(r.slice(0, i) + 'ん' + r.slice(i));
+      }
+    }
+    return out;
+  }
+
+  /** 把例句中的目標詞畫底線（該詞本身不加振假名，否則等於送答案） */
+  function underlineWord(item) {
+    var cut = blankAnno(item.ex, item.qWord);
+    if (!cut) return null;
+    return N2.ruby(cut.pre) +
+      '<span class="ul">' + N2.esc(item.qWord) + '</span>' +
+      N2.ruby(cut.post);
+  }
+
+  function makeReading(kind, item) {
+    if (kind !== 'v' || !item.qWord || !item.qKana) return null;
+    var stem = underlineWord(item);
+    if (!stem) return null;
+    var opts = N2.sample(misreadings(item.qKana), 3);
+    if (opts.length < 3) return null;
+    return {
+      type: 'reading', kind: kind, id: item.id, item: item,
+      typeLabel: '漢字読み', stem: stem,
+      sub: '＿＿の言葉の読み方として最もよいものを、一つえらびなさい。',
+      options: N2.shuffle([item.qKana].concat(opts)),
+      correct: item.qKana, jpOptions: true, noFurigana: true
+    };
+  }
+
+  // ================= 日檢問題2：表記 =================
+  function makeWriting(kind, item) {
+    if (kind !== 'v' || !item.qWord || !item.wrongKanji || item.wrongKanji.length < 3) {
+      return null;
+    }
+    var cut = blankAnno(item.ex, item.qWord);
+    if (!cut) return null;
+    // 句中的目標詞改成假名，選項則是各種漢字寫法
+    var kana = item.qKana;
+    var okuri = item.qWord.slice(item.qStem.length);   // 送假名，四個選項共用
+    var opts = item.wrongKanji.slice(0, 3).map(function (k) { return k + okuri; });
+    var correct = item.qWord;
+    if (opts.indexOf(correct) >= 0) return null;
+    return {
+      type: 'writing', kind: kind, id: item.id, item: item,
+      typeLabel: '表記', stem: N2.ruby(cut.pre) +
+        '<span class="ul">' + N2.esc(kana) + '</span>' + N2.ruby(cut.post),
+      sub: '＿＿の言葉を漢字で書くとき、最もよいものを、一つえらびなさい。',
+      options: N2.shuffle([correct].concat(opts)),
+      correct: correct, jpOptions: true, noFurigana: true
+    };
+  }
+
   function makeFill(kind, item) {
     var st = clozeStem(kind, item);
     if (!st) return null;
@@ -258,7 +372,16 @@
     };
   }
 
+  /** 這些題型是四選一，共用選項的渲染與鍵盤操作 */
+  var CHOICE_TYPES = ['mc', 'cloze', 'reading', 'writing'];
+  function isChoice(q) { return q && CHOICE_TYPES.indexOf(q.type) >= 0; }
+
+  // 只有單字能出的題型（文法沒有漢字讀音／表記可考）
+  var VOCAB_ONLY = ['reading', 'writing'];
+
   var MAKERS = {
+    reading: makeReading,
+    writing: makeWriting,
     cloze: makeClozeMC,
     mc: makeMC,
     fill: function (kind, item) { return makeFill(kind, item); },
@@ -268,7 +391,11 @@
   function build() {
     var p = pool();
     if (!p.items.length) return [];
-    var makers = cfg.types.filter(function (t) { return MAKERS[t]; });
+    var makers = cfg.types.filter(function (t) {
+      if (!MAKERS[t]) return false;
+      if (p.kind !== 'v' && VOCAB_ONLY.indexOf(t) >= 0) return false;
+      return true;
+    });
     if (!makers.length) makers = ['cloze'];
 
     var src = N2.shuffle(p.items);
@@ -308,12 +435,20 @@
       '<h3>挑選</h3><div class="opts">' + opts('range',
         [{ v: '全部', t: '全部' }, { v: '未掌握', t: '未掌握' },
          { v: '待加強', t: '★ 待加強' }, { v: '常錯', t: '常錯題' }], cfg.range) + '</div>' +
-      '<h3>題型（可複選）</h3><div class="opts">' + opts('types',
+      '<h3>題型（可複選）</h3><div class="opts">' +
+      (cfg.scope === 'vocab'
+        ? opts('types', [{ v: 'reading', t: '漢字読み' }, { v: 'writing', t: '表記' }],
+               cfg.types, true)
+        : '') +
+      opts('types',
         [{ v: 'cloze', t: '挖空四選一' }, { v: 'mc', t: '語意四選一' },
          { v: 'fill', t: '填空' }, { v: 'sort', t: '排序' }],
         cfg.types, true) + '</div>' +
       '<div class="muted" style="font-size:.8rem;margin-top:6px">' +
-      '挖空四選一＝日檢題型，句子挖空、四個選項擇一；語意四選一＝日中互譯與讀音。</div>' +
+      (cfg.scope === 'vocab'
+        ? '漢字読み＝日檢問題1，看漢字選假名；表記＝問題2，看假名選漢字。'
+        : '') +
+      '挖空四選一＝日檢問題4，句子挖空選詞；語意四選一＝日中互譯。</div>' +
       '<h3>題數</h3><div class="opts">' + opts('count',
         [{ v: 5, t: '5' }, { v: 10, t: '10' }, { v: 15, t: '15' },
          { v: 25, t: '25' }, { v: 40, t: '40' }], cfg.count) + '</div>' +
@@ -372,9 +507,9 @@
 
     var body = '<div class="card q-card"><div class="q-type">' + q.typeLabel + '</div>';
 
-    if (q.type === 'mc' || q.type === 'cloze') {
-      body += '<div class="q-stem' + (q.type === 'cloze' ? ' q-cloze' : '') + '">' +
-        q.stem + '</div>' +
+    if (isChoice(q)) {
+      body += '<div class="q-stem' + (q.type === 'mc' ? '' : ' q-cloze') +
+        (q.noFurigana ? ' q-noruby' : '') + '">' + q.stem + '</div>' +
         '<div class="q-sub">' + q.sub + '</div>' +
         '<div class="choices" id="choices">' +
         q.options.map(function (o, i) {
@@ -553,7 +688,8 @@
 
   window.Quiz = {
     cfg: cfg, render: render, start: start, next: next, check: check,
-    answerMC: answerMC, paintSort: paintSort,
+    answerMC: answerMC, paintSort: paintSort, isChoice: isChoice,
+    misreadings: misreadings,
     BLOCK: BLOCK, maxId: maxId, blockList: blockList,
     validBlocks: validBlocks, toggleBlock: toggleBlock,
     updateRangeInfo: updateRangeInfo,

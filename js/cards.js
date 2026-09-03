@@ -14,6 +14,9 @@
 
   function front(kind, it, dir) {
     if (kind === 'v') {
+      // kanji：只看漢字想讀音；kana：只看假名想漢字（都不給振假名）
+      if (dir === 'kanji') return '<span class="no-rt">' + N2.esc(it.word) + '</span>';
+      if (dir === 'kana') return N2.esc(it.reading);
       return dir === 'zh2jp' ? N2.esc(it.zh) : N2.ruby(it.wordRuby);
     }
     return dir === 'zh2jp' ? N2.esc(it.meaning) : N2.esc(it.pattern);
@@ -29,9 +32,18 @@
   function back(kind, it, dir) {
     var h = '';
     if (kind === 'v') {
-      h += '<div class="zh">' + (dir === 'zh2jp' ? N2.ruby(it.wordRuby) : N2.esc(it.zh)) + '</div>';
-      h += '<div class="rd">' + N2.esc(it.reading) +
-        (S.showEn && it.en ? '　·　' + N2.esc(it.en) : '') + '</div>';
+      if (dir === 'kanji' || dir === 'kana') {
+        // 漢字↔假名模式：背面把兩邊並列，中文只是附註
+        h += '<div class="zh">' + N2.ruby(it.wordRuby) + '</div>';
+        h += '<div class="rd">' + N2.esc(it.reading) + '</div>';
+        if (S.showZh) h += '<div class="rd" style="color:var(--ink-2)">' +
+          N2.esc(it.zh) + '</div>';
+      } else {
+        h += '<div class="zh">' +
+          (dir === 'zh2jp' ? N2.ruby(it.wordRuby) : N2.esc(it.zh)) + '</div>';
+        h += '<div class="rd">' + N2.esc(it.reading) +
+          (S.showEn && it.en ? '　·　' + N2.esc(it.en) : '') + '</div>';
+      }
       if (it.ex) h += exBox(it);
     } else {
       h += '<div class="zh">' + (dir === 'zh2jp' ? N2.esc(it.pattern) : N2.esc(it.meaning)) + '</div>';
@@ -47,6 +59,21 @@
       if (it.ex) h += exBox(it);
     }
     return h;
+  }
+
+  /** 字卡正面要看什麼 */
+  var DIRS = [
+    { v: 'kanji', t: '漢字 → 假名' },
+    { v: 'kana', t: '假名 → 漢字' },
+    { v: 'jp2zh', t: '日 → 中' },
+    { v: 'zh2jp', t: '中 → 日' }
+  ];
+  function dirBar(cur) {
+    return '<div class="opts" style="margin-bottom:12px">' +
+      DIRS.map(function (d) {
+        return '<button class="opt" data-dir="' + d.v + '" aria-pressed="' +
+          (cur === d.v) + '">' + d.t + '</button>';
+      }).join('') + '</div>';
   }
 
   function render(root) {
@@ -67,6 +94,8 @@
       '<button class="btn ghost" data-go="' + (deck.kind === 'v' ? 'vocab' : 'grammar') + '">← 返回</button>' +
       '<div class="progress"><i style="width:' + pct + '%"></i></div>' +
       '<span class="muted">' + (deck.i + 1) + ' / ' + deck.items.length + '</span></div>' +
+
+      (deck.kind === 'v' ? dirBar(deck.dir) : '') +
 
       '<div class="card flash" id="flash">' +
       '<div class="front">' + front(deck.kind, it, deck.dir) + '</div>' +
@@ -122,5 +151,12 @@
     render(root);
   }
 
-  window.Cards = { build: build, render: render, handle: handle, deck: function () { return deck; } };
+  function setDir(d) {
+    if (deck) { deck.dir = d; deck.flipped = false; }
+  }
+
+  window.Cards = {
+    build: build, render: render, handle: handle, setDir: setDir,
+    deck: function () { return deck; }
+  };
 })();

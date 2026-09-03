@@ -148,6 +148,8 @@
 
     // 字卡
     if (route === 'cards') {
+      var dr = t.closest('[data-dir]');
+      if (dr) { Cards.setDir(dr.dataset.dir); Cards.render(app); return; }
       if (t.closest('#flash')) { Cards.handle('flip', app); return; }
       var ca = t.closest('[data-act]');
       if (ca) { Cards.handle(ca.dataset.act, app); return; }
@@ -239,7 +241,7 @@
       if (Quiz.answered() && (e.key === 'Enter' || e.code === 'Space')) {
         e.preventDefault(); Quiz.next(); render(); return;
       }
-      if ((q.type === 'mc' || q.type === 'cloze') && /^[1-4a-dA-D]$/.test(e.key)) {
+      if (Quiz.isChoice(q) && /^[1-4a-dA-D]$/.test(e.key)) {
         var idx = '1234'.indexOf(e.key);
         if (idx < 0) idx = 'abcd'.indexOf(e.key.toLowerCase());
         if (idx >= 0 && idx < q.options.length) Quiz.answerMC(app, idx);

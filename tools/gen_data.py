@@ -5,6 +5,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from anno import VOCAB_ANNO, GRAM_ANNO
 from trans import VOCAB_TRANS, GRAM_TRANS
+from kanji import WRONG_KANJI
 
 OUT = os.path.join(HERE, "..", "data")
 os.makedirs(OUT, exist_ok=True)
@@ -97,8 +98,11 @@ def split_tail(anno_chunk, stem):
         return anno_chunk, ""
     return cur, tail
 
+HAS_KANJI = re.compile(r"[一-鿿]")
+
 VOC = []
 tail_errs = []
+kanji_errs = []
 for v in vocab:
     anno = VOCAB_ANNO[v["id"]]
     stem = re.sub("[" + KANA + "]+$", "", v["word"]) or v["word"]
@@ -107,15 +111,51 @@ for v in vocab:
     head, tail = split_tail(chunk, stem)
     if plain_of(head) + tail != plain_of(chunk):
         tail_errs.append((v["id"], chunk, head, tail))
-    VOC.append({
+    rec = {
         "id": v["id"], "group": v["group"], "pos": v["pos"],
         "word": v["word"], "wordRuby": head_anno(v["word"], v["reading"]),
         "reading": v["reading"], "en": v["en"], "zh": v["zh"],
         "ex": anno, "exZh": VOCAB_TRANS[v["id"]][0], "exEn": VOCAB_TRANS[v["id"]][1],
         "clozeIdx": idx,
         "clozeAnswer": plain_of(head), "clozeKana": kana_of(head), "clozeTail": tail,
-    })
+    }
+
+    # ---- 日檢問題1（漢字読み）／問題2（表記）用的欄位 ----
+    # qWord：例句中要畫底線的那一段；qKana：它的讀音
+    # 原形直接出現在句中就用原形，否則用活用後的形態
+    if HAS_KANJI.search(v["word"]):
+        sent = plain_of(anno).replace("/", "")
+        if v["word"] in sent:
+            rec["qWord"], rec["qKana"] = v["word"], v["reading"]
+        else:
+            rec["qWord"], rec["qKana"] = rec["clozeAnswer"], rec["clozeKana"]
+        rec["qStem"] = stem
+        rec["wrongKanji"] = WRONG_KANJI.get(v["id"], [])
+        if rec["qWord"] not in sent:
+            kanji_errs.append((v["id"], "qWord 不在例句中", rec["qWord"]))
+        if not rec["qWord"].startswith(stem):
+            kanji_errs.append((v["id"], "qWord 不是以語幹開頭", rec["qWord"], stem))
+        if HAS_KANJI.search(rec["qKana"]):
+            kanji_errs.append((v["id"], "讀音殘留漢字", rec["qKana"]))
+        w = rec["wrongKanji"]
+        if len(w) != 3:
+            kanji_errs.append((v["id"], "誘答漢字不是 3 個", w))
+        else:
+            if len(set(w)) != 3:
+                kanji_errs.append((v["id"], "誘答重複", w))
+            for x in w:
+                if len(x) != len(stem):
+                    kanji_errs.append((v["id"], "誘答字數與語幹不符", x, stem))
+                if x == stem:
+                    kanji_errs.append((v["id"], "誘答與正解相同", x))
+    VOC.append(rec)
 assert not tail_errs, tail_errs
+if kanji_errs:
+    for e in kanji_errs:
+        print("KANJI-ERR", e)
+    sys.exit(1)
+print("漢字読み／表記可出題單字：",
+      sum(1 for x in VOC if x.get("qWord")))
 
 # ---------- 文法填空目標 ----------
 # 例句中的文法因為活用或漢字表記，跟文法名稱長得不一樣，

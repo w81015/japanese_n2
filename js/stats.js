@@ -3,7 +3,8 @@
   'use strict';
 
   var TYPE_NAME = {
-    cloze: '挖空四選一', mc: '語意四選一', fill: '填空', sort: '排序', card: '字卡'
+    reading: '漢字読み', writing: '表記', cloze: '挖空四選一',
+    mc: '語意四選一', fill: '填空', sort: '排序', card: '字卡'
   };
 
   /** 把單字與文法合成一份帶 kind 的清單 */

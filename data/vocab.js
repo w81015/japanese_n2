@@ -14,7 +14,15 @@ window.VOCAB = [
 "clozeIdx": 4,
 "clozeAnswer": "影響",
 "clozeKana": "えいきょう",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "影響",
+"qKana": "えいきょう",
+"qStem": "影響",
+"wrongKanji": [
+"映響",
+"影鏡",
+"影郷"
+]
 },
 {
 "id": 2,
@@ -31,7 +39,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "経験",
 "clozeKana": "けいけん",
-"clozeTail": "が"
+"clozeTail": "が",
+"qWord": "経験",
+"qKana": "けいけん",
+"qStem": "経験",
+"wrongKanji": [
+"経検",
+"径験",
+"経険"
+]
 },
 {
 "id": 3,
@@ -48,7 +64,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "状況",
 "clozeKana": "じょうきょう",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "状況",
+"qKana": "じょうきょう",
+"qStem": "状況",
+"wrongKanji": [
+"情況",
+"状境",
+"状郷"
+]
 },
 {
 "id": 4,
@@ -65,7 +89,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "対応する",
 "clozeKana": "たいおうする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "対応",
+"qKana": "たいおう",
+"qStem": "対応",
+"wrongKanji": [
+"体応",
+"待応",
+"対央"
+]
 },
 {
 "id": 5,
@@ -82,7 +114,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "判断する",
 "clozeKana": "はんだんする",
-"clozeTail": "のは"
+"clozeTail": "のは",
+"qWord": "判断",
+"qKana": "はんだん",
+"qStem": "判断",
+"wrongKanji": [
+"判段",
+"半断",
+"判談"
+]
 },
 {
 "id": 6,
@@ -99,7 +139,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "増加している",
 "clozeKana": "ぞうかしている",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "増加",
+"qKana": "ぞうか",
+"qStem": "増加",
+"wrongKanji": [
+"増化",
+"造加",
+"増課"
+]
 },
 {
 "id": 7,
@@ -116,7 +164,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "減少した",
 "clozeKana": "げんしょうした",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "減少",
+"qKana": "げんしょう",
+"qStem": "減少",
+"wrongKanji": [
+"減小",
+"現少",
+"限少"
+]
 },
 {
 "id": 8,
@@ -133,7 +189,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "維持するため",
 "clozeKana": "いじするため",
-"clozeTail": "に"
+"clozeTail": "に",
+"qWord": "維持",
+"qKana": "いじ",
+"qStem": "維持",
+"wrongKanji": [
+"維事",
+"位持",
+"維時"
+]
 },
 {
 "id": 9,
@@ -150,7 +214,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "改善する",
 "clozeKana": "かいぜんする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "改善",
+"qKana": "かいぜん",
+"qStem": "改善",
+"wrongKanji": [
+"開善",
+"改全",
+"改然"
+]
 },
 {
 "id": 10,
@@ -167,7 +239,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "発展している",
 "clozeKana": "はってんしている",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "発展",
+"qKana": "はってん",
+"qStem": "発展",
+"wrongKanji": [
+"発転",
+"発点",
+"発典"
+]
 },
 {
 "id": 11,
@@ -184,7 +264,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "普及した",
 "clozeKana": "ふきゅうした",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "普及",
+"qKana": "ふきゅう",
+"qStem": "普及",
+"wrongKanji": [
+"不及",
+"普給",
+"普休"
+]
 },
 {
 "id": 12,
@@ -201,7 +289,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "実施する",
 "clozeKana": "じっしする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "実施",
+"qKana": "じっし",
+"qStem": "実施",
+"wrongKanji": [
+"実試",
+"実支",
+"質施"
+]
 },
 {
 "id": 13,
@@ -218,7 +314,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "検討する",
 "clozeKana": "けんとうする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "検討",
+"qKana": "けんとう",
+"qStem": "検討",
+"wrongKanji": [
+"検当",
+"険討",
+"検答"
+]
 },
 {
 "id": 14,
@@ -235,7 +339,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "議論する",
 "clozeKana": "ぎろんする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "議論",
+"qKana": "ぎろん",
+"qStem": "議論",
+"wrongKanji": [
+"義論",
+"疑論",
+"議輪"
+]
 },
 {
 "id": 15,
@@ -252,7 +364,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "主張する",
 "clozeKana": "しゅちょうする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "主張",
+"qKana": "しゅちょう",
+"qStem": "主張",
+"wrongKanji": [
+"主帳",
+"首張",
+"主調"
+]
 },
 {
 "id": 16,
@@ -269,7 +389,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "結論",
 "clozeKana": "けつろん",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "結論",
+"qKana": "けつろん",
+"qStem": "結論",
+"wrongKanji": [
+"決論",
+"結輪",
+"結倫"
+]
 },
 {
 "id": 17,
@@ -286,7 +414,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "原因",
 "clozeKana": "げんいん",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "原因",
+"qKana": "げんいん",
+"qStem": "原因",
+"wrongKanji": [
+"元因",
+"現因",
+"原員"
+]
 },
 {
 "id": 18,
@@ -303,7 +439,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "特徴",
 "clozeKana": "とくちょう",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "特徴",
+"qKana": "とくちょう",
+"qStem": "特徴",
+"wrongKanji": [
+"特長",
+"得徴",
+"特調"
+]
 },
 {
 "id": 19,
@@ -320,7 +464,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "採用条件",
 "clozeKana": "さいようじょうけん",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "条件",
+"qKana": "じょうけん",
+"qStem": "条件",
+"wrongKanji": [
+"状件",
+"条券",
+"条検"
+]
 },
 {
 "id": 20,
@@ -337,7 +489,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "年齢制限",
 "clozeKana": "ねんれいせいげん",
-"clozeTail": "が"
+"clozeTail": "が",
+"qWord": "制限",
+"qKana": "せいげん",
+"qStem": "制限",
+"wrongKanji": [
+"政限",
+"製限",
+"制原"
+]
 },
 {
 "id": 21,
@@ -354,7 +514,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "駐車禁止",
 "clozeKana": "ちゅうしゃきんし",
-"clozeTail": "の"
+"clozeTail": "の",
+"qWord": "禁止",
+"qKana": "きんし",
+"qStem": "禁止",
+"wrongKanji": [
+"金止",
+"禁支",
+"禁市"
+]
 },
 {
 "id": 22,
@@ -371,7 +539,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "許可",
 "clozeKana": "きょか",
-"clozeTail": "が"
+"clozeTail": "が",
+"qWord": "許可",
+"qKana": "きょか",
+"qStem": "許可",
+"wrongKanji": [
+"許課",
+"許価",
+"拠可"
+]
 },
 {
 "id": 23,
@@ -388,7 +564,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "義務",
 "clozeKana": "ぎむ",
-"clozeTail": "が"
+"clozeTail": "が",
+"qWord": "義務",
+"qKana": "ぎむ",
+"qStem": "義務",
+"wrongKanji": [
+"議務",
+"疑務",
+"義夢"
+]
 },
 {
 "id": 24,
@@ -405,7 +589,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "権利だ",
 "clozeKana": "けんりだ",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "権利",
+"qKana": "けんり",
+"qStem": "権利",
+"wrongKanji": [
+"権理",
+"検利",
+"権里"
+]
 },
 {
 "id": 25,
@@ -422,7 +614,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "責任",
 "clozeKana": "せきにん",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "責任",
+"qKana": "せきにん",
+"qStem": "責任",
+"wrongKanji": [
+"積任",
+"席任",
+"責認"
+]
 },
 {
 "id": 26,
@@ -439,7 +639,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "効果",
 "clozeKana": "こうか",
-"clozeTail": "が"
+"clozeTail": "が",
+"qWord": "効果",
+"qKana": "こうか",
+"qStem": "効果",
+"wrongKanji": [
+"交果",
+"効課",
+"効科"
+]
 },
 {
 "id": 27,
@@ -456,7 +664,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "効率",
 "clozeKana": "こうりつ",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "効率",
+"qKana": "こうりつ",
+"qStem": "効率",
+"wrongKanji": [
+"公立",
+"交率",
+"効立"
+]
 },
 {
 "id": 28,
@@ -473,7 +689,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "語学能力",
 "clozeKana": "ごがくのうりょく",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "能力",
+"qKana": "のうりょく",
+"qStem": "能力",
+"wrongKanji": [
+"農力",
+"脳力",
+"能量"
+]
 },
 {
 "id": 29,
@@ -490,7 +714,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "可能性",
 "clozeKana": "かのうせい",
-"clozeTail": "は"
+"clozeTail": "は",
+"qWord": "可能性",
+"qKana": "かのうせい",
+"qStem": "可能性",
+"wrongKanji": [
+"可能生",
+"加能性",
+"可脳性"
+]
 },
 {
 "id": 30,
@@ -507,7 +739,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "実現するため",
 "clozeKana": "じつげんするため",
-"clozeTail": "に"
+"clozeTail": "に",
+"qWord": "実現",
+"qKana": "じつげん",
+"qStem": "実現",
+"wrongKanji": [
+"実限",
+"質現",
+"実言"
+]
 },
 {
 "id": 31,
@@ -524,7 +764,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "達成した",
 "clozeKana": "たっせいした",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "達成",
+"qKana": "たっせい",
+"qStem": "達成",
+"wrongKanji": [
+"達性",
+"達製",
+"建成"
+]
 },
 {
 "id": 32,
@@ -541,7 +789,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "挑戦する",
 "clozeKana": "ちょうせんする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "挑戦",
+"qKana": "ちょうせん",
+"qStem": "挑戦",
+"wrongKanji": [
+"調戦",
+"挑線",
+"挑船"
+]
 },
 {
 "id": 33,
@@ -558,7 +814,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "失敗",
 "clozeKana": "しっぱい",
-"clozeTail": "に"
+"clozeTail": "に",
+"qWord": "失敗",
+"qKana": "しっぱい",
+"qStem": "失敗",
+"wrongKanji": [
+"室敗",
+"失配",
+"失杯"
+]
 },
 {
 "id": 34,
@@ -575,7 +839,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "成長",
 "clozeKana": "せいちょう",
-"clozeTail": "は"
+"clozeTail": "は",
+"qWord": "成長",
+"qKana": "せいちょう",
+"qStem": "成長",
+"wrongKanji": [
+"生長",
+"成調",
+"成帳"
+]
 },
 {
 "id": 35,
@@ -592,7 +864,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "成果",
 "clozeKana": "せいか",
-"clozeTail": "が"
+"clozeTail": "が",
+"qWord": "成果",
+"qKana": "せいか",
+"qStem": "成果",
+"wrongKanji": [
+"生果",
+"成科",
+"成価"
+]
 },
 {
 "id": 36,
@@ -609,7 +889,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "評価される",
 "clozeKana": "ひょうかされる",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "評価",
+"qKana": "ひょうか",
+"qStem": "評価",
+"wrongKanji": [
+"表価",
+"評課",
+"評化"
+]
 },
 {
 "id": 37,
@@ -626,7 +914,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "比較する",
 "clozeKana": "ひかくする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "比較",
+"qKana": "ひかく",
+"qStem": "比較",
+"wrongKanji": [
+"比格",
+"比角",
+"費較"
+]
 },
 {
 "id": 38,
@@ -643,7 +939,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "共通",
 "clozeKana": "きょうつう",
-"clozeTail": "の"
+"clozeTail": "の",
+"qWord": "共通",
+"qKana": "きょうつう",
+"qStem": "共通",
+"wrongKanji": [
+"協通",
+"共痛",
+"教通"
+]
 },
 {
 "id": 39,
@@ -660,7 +964,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "共有する",
 "clozeKana": "きょうゆうする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "共有",
+"qKana": "きょうゆう",
+"qStem": "共有",
+"wrongKanji": [
+"協有",
+"共友",
+"教有"
+]
 },
 {
 "id": 40,
@@ -677,7 +989,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "確認する",
 "clozeKana": "かくにんする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "確認",
+"qKana": "かくにん",
+"qStem": "確認",
+"wrongKanji": [
+"各認",
+"覚認",
+"確任"
+]
 },
 {
 "id": 41,
@@ -694,7 +1014,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "確保する",
 "clozeKana": "かくほする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "確保",
+"qKana": "かくほ",
+"qStem": "確保",
+"wrongKanji": [
+"各保",
+"覚保",
+"確歩"
+]
 },
 {
 "id": 42,
@@ -711,7 +1039,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "把握する",
 "clozeKana": "はあくする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "把握",
+"qKana": "はあく",
+"qStem": "把握",
+"wrongKanji": [
+"破握",
+"把悪",
+"波握"
+]
 },
 {
 "id": 43,
@@ -728,7 +1064,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "処理する",
 "clozeKana": "しょりする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "処理",
+"qKana": "しょり",
+"qStem": "処理",
+"wrongKanji": [
+"所理",
+"初理",
+"処利"
+]
 },
 {
 "id": 44,
@@ -745,7 +1089,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "処分する",
 "clozeKana": "しょぶんする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "処分",
+"qKana": "しょぶん",
+"qStem": "処分",
+"wrongKanji": [
+"所分",
+"初分",
+"処文"
+]
 },
 {
 "id": 45,
@@ -762,7 +1114,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "負担",
 "clozeKana": "ふたん",
-"clozeTail": "が"
+"clozeTail": "が",
+"qWord": "負担",
+"qKana": "ふたん",
+"qStem": "負担",
+"wrongKanji": [
+"負短",
+"不担",
+"負単"
+]
 },
 {
 "id": 46,
@@ -779,7 +1139,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "節約する",
 "clozeKana": "せつやくする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "節約",
+"qKana": "せつやく",
+"qStem": "節約",
+"wrongKanji": [
+"切約",
+"節役",
+"節薬"
+]
 },
 {
 "id": 47,
@@ -796,7 +1164,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "浪費する",
 "clozeKana": "ろうひする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "浪費",
+"qKana": "ろうひ",
+"qStem": "浪費",
+"wrongKanji": [
+"労費",
+"浪比",
+"浪非"
+]
 },
 {
 "id": 48,
@@ -813,7 +1189,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "消費する",
 "clozeKana": "しょうひする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "消費",
+"qKana": "しょうひ",
+"qStem": "消費",
+"wrongKanji": [
+"商費",
+"少費",
+"消比"
+]
 },
 {
 "id": 49,
@@ -830,7 +1214,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "生産する",
 "clozeKana": "せいさんする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "生産",
+"qKana": "せいさん",
+"qStem": "生産",
+"wrongKanji": [
+"生算",
+"生散",
+"精産"
+]
 },
 {
 "id": 50,
@@ -847,7 +1239,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "供給する",
 "clozeKana": "きょうきゅうする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "供給",
+"qKana": "きょうきゅう",
+"qStem": "供給",
+"wrongKanji": [
+"共給",
+"協給",
+"供休"
+]
 },
 {
 "id": 51,
@@ -864,7 +1264,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "需要",
 "clozeKana": "じゅよう",
-"clozeTail": "が"
+"clozeTail": "が",
+"qWord": "需要",
+"qKana": "じゅよう",
+"qStem": "需要",
+"wrongKanji": [
+"需用",
+"授要",
+"需容"
+]
 },
 {
 "id": 52,
@@ -881,7 +1289,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "傾向",
 "clozeKana": "けいこう",
-"clozeTail": "が"
+"clozeTail": "が",
+"qWord": "傾向",
+"qKana": "けいこう",
+"qStem": "傾向",
+"wrongKanji": [
+"経向",
+"傾行",
+"傾好"
+]
 },
 {
 "id": 53,
@@ -898,7 +1314,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "現象",
 "clozeKana": "げんしょう",
-"clozeTail": "が"
+"clozeTail": "が",
+"qWord": "現象",
+"qKana": "げんしょう",
+"qStem": "現象",
+"wrongKanji": [
+"減象",
+"現証",
+"現勝"
+]
 },
 {
 "id": 54,
@@ -915,7 +1339,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "矛盾",
 "clozeKana": "むじゅん",
-"clozeTail": "が"
+"clozeTail": "が",
+"qWord": "矛盾",
+"qKana": "むじゅん",
+"qStem": "矛盾",
+"wrongKanji": [
+"矛順",
+"矛純",
+"務盾"
+]
 },
 {
 "id": 55,
@@ -932,7 +1364,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "一致した",
 "clozeKana": "いっちした",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "一致",
+"qKana": "いっち",
+"qStem": "一致",
+"wrongKanji": [
+"一置",
+"一地",
+"位致"
+]
 },
 {
 "id": 56,
@@ -949,7 +1389,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "専門分野",
 "clozeKana": "せんもんぶんや",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "分野",
+"qKana": "ぶんや",
+"qStem": "分野",
+"wrongKanji": [
+"文野",
+"分夜",
+"分屋"
+]
 },
 {
 "id": 57,
@@ -966,7 +1414,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "分析する",
 "clozeKana": "ぶんせきする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "分析",
+"qKana": "ぶんせき",
+"qStem": "分析",
+"wrongKanji": [
+"文析",
+"分席",
+"分責"
+]
 },
 {
 "id": 58,
@@ -983,7 +1439,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "分類する",
 "clozeKana": "ぶんるいする",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "分類",
+"qKana": "ぶんるい",
+"qStem": "分類",
+"wrongKanji": [
+"文類",
+"分累",
+"分涙"
+]
 },
 {
 "id": 59,
@@ -1000,7 +1464,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "基準",
 "clozeKana": "きじゅん",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "基準",
+"qKana": "きじゅん",
+"qStem": "基準",
+"wrongKanji": [
+"基順",
+"期準",
+"基純"
+]
 },
 {
 "id": 60,
@@ -1017,7 +1489,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "基礎から",
 "clozeKana": "きそから",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "基礎",
+"qKana": "きそ",
+"qStem": "基礎",
+"wrongKanji": [
+"基素",
+"期礎",
+"基組"
+]
 },
 {
 "id": 61,
@@ -1034,7 +1514,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "基盤",
 "clozeKana": "きばん",
-"clozeTail": "を"
+"clozeTail": "を",
+"qWord": "基盤",
+"qKana": "きばん",
+"qStem": "基盤",
+"wrongKanji": [
+"基板",
+"基番",
+"期盤"
+]
 },
 {
 "id": 62,
@@ -1051,7 +1539,15 @@ window.VOCAB = [
 "clozeIdx": 3,
 "clozeAnswer": "招いた",
 "clozeKana": "まねいた",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "招いた",
+"qKana": "まねいた",
+"qStem": "招",
+"wrongKanji": [
+"紹",
+"昭",
+"沼"
+]
 },
 {
 "id": 63,
@@ -1068,7 +1564,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "辞退します",
 "clozeKana": "じたいします",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "辞退します",
+"qKana": "じたいします",
+"qStem": "辞退",
+"wrongKanji": [
+"辞対",
+"事退",
+"字退"
+]
 },
 {
 "id": 64,
@@ -1085,7 +1589,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "訴えた",
 "clozeKana": "うったえた",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "訴えた",
+"qKana": "うったえた",
+"qStem": "訴",
+"wrongKanji": [
+"診",
+"訟",
+"折"
+]
 },
 {
 "id": 65,
@@ -1102,7 +1614,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "補う",
 "clozeKana": "おぎなう",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "補う",
+"qKana": "おぎなう",
+"qStem": "補",
+"wrongKanji": [
+"捕",
+"舗",
+"浦"
+]
 },
 {
 "id": 66,
@@ -1119,7 +1639,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "伴う",
 "clozeKana": "ともなう",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "伴う",
+"qKana": "ともなう",
+"qStem": "伴",
+"wrongKanji": [
+"判",
+"畔",
+"半"
+]
 },
 {
 "id": 67,
@@ -1136,7 +1664,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "兼ねている",
 "clozeKana": "かねている",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "兼ねている",
+"qKana": "かねている",
+"qStem": "兼",
+"wrongKanji": [
+"謙",
+"嫌",
+"廉"
+]
 },
 {
 "id": 68,
@@ -1153,7 +1689,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "貫く",
 "clozeKana": "つらぬく",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "貫く",
+"qKana": "つらぬく",
+"qStem": "貫",
+"wrongKanji": [
+"慣",
+"貴",
+"買"
+]
 },
 {
 "id": 69,
@@ -1170,7 +1714,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "妨げる",
 "clozeKana": "さまたげる",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "妨げる",
+"qKana": "さまたげる",
+"qStem": "妨",
+"wrongKanji": [
+"防",
+"訪",
+"坊"
+]
 },
 {
 "id": 70,
@@ -1187,7 +1739,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "避けて",
 "clozeKana": "さけて",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "避けて",
+"qKana": "さけて",
+"qStem": "避",
+"wrongKanji": [
+"遍",
+"遊",
+"壁"
+]
 },
 {
 "id": 71,
@@ -1204,7 +1764,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "逃れること",
 "clozeKana": "のがれること",
-"clozeTail": "は"
+"clozeTail": "は",
+"qWord": "逃れる",
+"qKana": "のがれる",
+"qStem": "逃",
+"wrongKanji": [
+"兆",
+"桃",
+"迷"
+]
 },
 {
 "id": 72,
@@ -1221,7 +1789,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "浮かんだ",
 "clozeKana": "うかんだ",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "浮かんだ",
+"qKana": "うかんだ",
+"qStem": "浮",
+"wrongKanji": [
+"深",
+"浄",
+"沈"
+]
 },
 {
 "id": 73,
@@ -1238,7 +1814,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "崩れる",
 "clozeKana": "くずれる",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "崩れる",
+"qKana": "くずれる",
+"qStem": "崩",
+"wrongKanji": [
+"崖",
+"棚",
+"朋"
+]
 },
 {
 "id": 74,
@@ -1255,7 +1839,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "築く",
 "clozeKana": "きずく",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "築く",
+"qKana": "きずく",
+"qStem": "築",
+"wrongKanji": [
+"筑",
+"建",
+"策"
+]
 },
 {
 "id": 75,
@@ -1272,7 +1864,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "詳しい",
 "clozeKana": "くわしい",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "詳しい",
+"qKana": "くわしい",
+"qStem": "詳",
+"wrongKanji": [
+"祥",
+"洋",
+"羊"
+]
 },
 {
 "id": 76,
@@ -1289,7 +1889,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "鋭い",
 "clozeKana": "するどい",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "鋭い",
+"qKana": "するどい",
+"qStem": "鋭",
+"wrongKanji": [
+"銃",
+"鏡",
+"説"
+]
 },
 {
 "id": 77,
@@ -1306,7 +1914,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "著しく",
 "clozeKana": "いちじるしく",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "著しく",
+"qKana": "いちじるしく",
+"qStem": "著",
+"wrongKanji": [
+"者",
+"署",
+"諸"
+]
 },
 {
 "id": 78,
@@ -1323,7 +1939,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "激しい",
 "clozeKana": "はげしい",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "激しい",
+"qKana": "はげしい",
+"qStem": "激",
+"wrongKanji": [
+"撃",
+"劇",
+"敷"
+]
 },
 {
 "id": 79,
@@ -1340,7 +1964,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "恐ろしい",
 "clozeKana": "おそろしい",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "恐ろしい",
+"qKana": "おそろしい",
+"qStem": "恐",
+"wrongKanji": [
+"怒",
+"恵",
+"惑"
+]
 },
 {
 "id": 80,
@@ -1357,7 +1989,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "望ましい",
 "clozeKana": "のぞましい",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "望ましい",
+"qKana": "のぞましい",
+"qStem": "望",
+"wrongKanji": [
+"忘",
+"亡",
+"妄"
+]
 },
 {
 "id": 81,
@@ -1374,7 +2014,15 @@ window.VOCAB = [
 "clozeIdx": 3,
 "clozeAnswer": "相応しい",
 "clozeKana": "ふさわしい",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "相応しい",
+"qKana": "ふさわしい",
+"qStem": "相応",
+"wrongKanji": [
+"想応",
+"相王",
+"双応"
+]
 },
 {
 "id": 82,
@@ -1391,7 +2039,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "乏しい",
 "clozeKana": "とぼしい",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "乏しい",
+"qKana": "とぼしい",
+"qStem": "乏",
+"wrongKanji": [
+"芝",
+"貧",
+"久"
+]
 },
 {
 "id": 83,
@@ -1408,7 +2064,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "厚かましいと",
 "clozeKana": "あつかましいと",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "厚かましい",
+"qKana": "あつかましい",
+"qStem": "厚",
+"wrongKanji": [
+"原",
+"圧",
+"后"
+]
 },
 {
 "id": 84,
@@ -1442,7 +2106,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "情けない",
 "clozeKana": "なさけない",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "情けない",
+"qKana": "なさけない",
+"qStem": "情",
+"wrongKanji": [
+"清",
+"精",
+"静"
+]
 },
 {
 "id": 86,
@@ -1459,7 +2131,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "心強い",
 "clozeKana": "こころづよい",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "心強い",
+"qKana": "こころづよい",
+"qStem": "心強",
+"wrongKanji": [
+"芯強",
+"心競",
+"新強"
+]
 },
 {
 "id": 87,
@@ -1476,7 +2156,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "曖昧な",
 "clozeKana": "あいまいな",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "曖昧",
+"qKana": "あいまい",
+"qStem": "曖昧",
+"wrongKanji": [
+"曖味",
+"愛昧",
+"暖昧"
+]
 },
 {
 "id": 88,
@@ -1493,7 +2181,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "単純ではない",
 "clozeKana": "たんじゅんではない",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "単純",
+"qKana": "たんじゅん",
+"qStem": "単純",
+"wrongKanji": [
+"単順",
+"短純",
+"単準"
+]
 },
 {
 "id": 89,
@@ -1510,7 +2206,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "複雑",
 "clozeKana": "ふくざつ",
-"clozeTail": "で"
+"clozeTail": "で",
+"qWord": "複雑",
+"qKana": "ふくざつ",
+"qStem": "複雑",
+"wrongKanji": [
+"復雑",
+"副雑",
+"複維"
+]
 },
 {
 "id": 90,
@@ -1527,7 +2231,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "柔軟な",
 "clozeKana": "じゅうなんな",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "柔軟",
+"qKana": "じゅうなん",
+"qStem": "柔軟",
+"wrongKanji": [
+"柔難",
+"重軟",
+"柔南"
+]
 },
 {
 "id": 91,
@@ -1544,7 +2256,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "深刻な",
 "clozeKana": "しんこくな",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "深刻",
+"qKana": "しんこく",
+"qStem": "深刻",
+"wrongKanji": [
+"深告",
+"真刻",
+"深国"
+]
 },
 {
 "id": 92,
@@ -1561,7 +2281,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "豊富だ",
 "clozeKana": "ほうふだ",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "豊富",
+"qKana": "ほうふ",
+"qStem": "豊富",
+"wrongKanji": [
+"豊夫",
+"報富",
+"豊布"
+]
 },
 {
 "id": 93,
@@ -1578,7 +2306,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "莫大な",
 "clozeKana": "ばくだいな",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "莫大",
+"qKana": "ばくだい",
+"qStem": "莫大",
+"wrongKanji": [
+"漠大",
+"莫台",
+"幕大"
+]
 },
 {
 "id": 94,
@@ -1595,7 +2331,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "円滑",
 "clozeKana": "えんかつ",
-"clozeTail": "に"
+"clozeTail": "に",
+"qWord": "円滑",
+"qKana": "えんかつ",
+"qStem": "円滑",
+"wrongKanji": [
+"円活",
+"縁滑",
+"円割"
+]
 },
 {
 "id": 95,
@@ -1612,7 +2356,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "的確な",
 "clozeKana": "てきかくな",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "的確",
+"qKana": "てきかく",
+"qStem": "的確",
+"wrongKanji": [
+"適確",
+"的格",
+"的角"
+]
 },
 {
 "id": 96,
@@ -1629,7 +2381,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "新鮮な",
 "clozeKana": "しんせんな",
-"clozeTail": ""
+"clozeTail": "",
+"qWord": "新鮮",
+"qKana": "しんせん",
+"qStem": "新鮮",
+"wrongKanji": [
+"新選",
+"親鮮",
+"新線"
+]
 },
 {
 "id": 97,
@@ -1646,7 +2406,15 @@ window.VOCAB = [
 "clozeIdx": 1,
 "clozeAnswer": "不安定だ",
 "clozeKana": "ふあんていだ",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "不安定",
+"qKana": "ふあんてい",
+"qStem": "不安定",
+"wrongKanji": [
+"不案定",
+"付安定",
+"不安低"
+]
 },
 {
 "id": 98,
@@ -1663,7 +2431,15 @@ window.VOCAB = [
 "clozeIdx": 2,
 "clozeAnswer": "不可欠だ",
 "clozeKana": "ふかけつだ",
-"clozeTail": "。"
+"clozeTail": "。",
+"qWord": "不可欠",
+"qKana": "ふかけつ",
+"qStem": "不可欠",
+"wrongKanji": [
+"不可決",
+"不加欠",
+"不可結"
+]
 },
 {
 "id": 99,
@@ -1867,7 +2643,15 @@ window.VOCAB = [
 "clozeIdx": 0,
 "clozeAnswer": "案の定",
 "clozeKana": "あんのじょう",
-"clozeTail": "、"
+"clozeTail": "、",
+"qWord": "案の定",
+"qKana": "あんのじょう",
+"qStem": "案の定",
+"wrongKanji": [
+"安の定",
+"案の停",
+"暗の定"
+]
 },
 {
 "id": 111,
