@@ -163,8 +163,15 @@
   function logAnswer(key, correct, qtype) {
     var t = today();
     var day = progress.log[t] || (progress.log[t] = { n: 0, ok: 0 });
+    var isNew = !progress.items[key];
     day.n++;
     if (correct) day.ok++;
+
+    // 當天每個項目的作答明細，供學習日誌逐項列出
+    day.items = day.items || {};
+    var di = day.items[key] || (day.items[key] = { n: 0, ok: 0 });
+    di.n++; if (correct) di.ok++;
+    if (isNew) markFresh(day, key);
 
     if (qtype) {
       day.byType = day.byType || {};
@@ -184,12 +191,98 @@
     saveProgress();
   }
 
-  /** 字卡的自評也計入排程（不計入正確率統計） */
+  /** 當天第一次碰到的項目記成「新學」 */
+  function markFresh(day, key) {
+    day.fresh = day.fresh || [];
+    if (day.fresh.indexOf(key) < 0) day.fresh.push(key);
+  }
+
+  /** 字卡的自評也計入排程（不計入測驗正確率，但要記進當天的活動） */
   function logCard(key, good) {
+    var t = today();
+    var day = progress.log[t] || (progress.log[t] = { n: 0, ok: 0 });
+    var isNew = !progress.items[key];
+    day.cards = day.cards || {};
+    var dc = day.cards[key] || (day.cards[key] = { n: 0, ok: 0 });
+    dc.n++; if (good) dc.ok++;
+    if (isNew) markFresh(day, key);
+
     review(key, good);
     var at = progress.types.card || (progress.types.card = { n: 0, ok: 0 });
     at.n++; if (good) at.ok++;
     saveProgress();
+  }
+
+  // ---------- 學習日誌 ----------
+  /** 這一天有沒有學習（測驗或字卡都算） */
+  function dayUsed(k) {
+    var d = progress.log[k];
+    return !!(d && (d.n > 0 || (d.cards && Object.keys(d.cards).length)));
+  }
+
+  /** 某一天的完整明細 */
+  function dayStat(k) {
+    var d = progress.log[k] || {};
+    var cards = d.cards || {}, items = d.items || {};
+    var cardN = 0;
+    Object.keys(cards).forEach(function (x) { cardN += cards[x].n; });
+    return {
+      key: k, n: d.n || 0, ok: d.ok || 0,
+      pct: d.n ? Math.round(d.ok / d.n * 100) : null,
+      byType: d.byType || {},
+      items: items, cards: cards,
+      cardCount: Object.keys(cards).length, cardReps: cardN,
+      fresh: d.fresh || [],
+      total: (d.n || 0) + cardN
+    };
+  }
+
+  /** 有學習紀錄的日期，由新到舊 */
+  function usedDays() {
+    return Object.keys(progress.log).filter(dayUsed)
+      .sort(function (a, b) { return a < b ? 1 : -1; });
+  }
+
+  /** 該日期所屬那一週的星期一 */
+  function weekStart(k) {
+    var d = parseDay(k);
+    if (!d) return k;
+    var dow = (d.getDay() + 6) % 7;          // 0 = 星期一
+    d.setDate(d.getDate() - dow);
+    return fmtDay(d);
+  }
+
+  /** 把有紀錄的日子彙整成每週一筆，由新到舊 */
+  function weekStats() {
+    var byWeek = {};
+    usedDays().forEach(function (k) {
+      var w = weekStart(k);
+      var g = byWeek[w] || (byWeek[w] = {
+        key: w, end: addDays(w, 6), days: [], n: 0, ok: 0,
+        cardReps: 0, items: {}, cards: {}, fresh: []
+      });
+      var s = dayStat(k);
+      g.days.push(s);
+      g.n += s.n; g.ok += s.ok; g.cardReps += s.cardReps;
+      Object.keys(s.items).forEach(function (key) {
+        var t = g.items[key] || (g.items[key] = { n: 0, ok: 0 });
+        t.n += s.items[key].n; t.ok += s.items[key].ok;
+      });
+      Object.keys(s.cards).forEach(function (key) {
+        var t = g.cards[key] || (g.cards[key] = { n: 0, ok: 0 });
+        t.n += s.cards[key].n; t.ok += s.cards[key].ok;
+      });
+      s.fresh.forEach(function (key) {
+        if (g.fresh.indexOf(key) < 0) g.fresh.push(key);
+      });
+    });
+    return Object.keys(byWeek).sort(function (a, b) { return a < b ? 1 : -1; })
+      .map(function (w) {
+        var g = byWeek[w];
+        g.pct = g.n ? Math.round(g.ok / g.n * 100) : null;
+        g.days.sort(function (a, b) { return a.key < b.key ? 1 : -1; });
+        return g;
+      });
   }
 
   /**
@@ -228,11 +321,11 @@
     });
   }
 
+  /** 連續學習天數。只翻字卡沒作答的日子也算有學 */
   function streak() {
     var n = 0;
     for (var i = 0; i < 400; i++) {
-      var k = dayKey(-i);
-      if (progress.log[k] && progress.log[k].n > 0) n++;
+      if (dayUsed(dayKey(-i))) n++;
       else if (i > 0) break;
     }
     return n;
@@ -348,6 +441,8 @@
     parseDay: parseDay, addDays: addDays, daysBetween: daysBetween,
     logAnswer: logAnswer, logCard: logCard, review: review,
     getItem: getItem, reviewQueue: reviewQueue, leeches: leeches,
+    dayUsed: dayUsed, dayStat: dayStat, usedDays: usedDays,
+    weekStart: weekStart, weekStats: weekStats,
     ruby: ruby, plain: plain, chunks: chunks, kana: kana, esc: esc,
     speak: speak, getVoices: function () { return voices; },
     shuffle: shuffle, sample: sample, el: el,

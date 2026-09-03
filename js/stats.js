@@ -7,10 +7,32 @@
     mc: '語意四選一', fill: '填空', sort: '排序', card: '字卡'
   };
 
+  // 學習日誌的檢視狀態
+  var logView = 'day';    // 'day' | 'week'
+  var openKey = null;     // 展開中的那一天／那一週
+
   /** 把單字與文法合成一份帶 kind 的清單 */
   function allItems() {
     return VOCAB.map(function (v) { return { kind: 'v', id: v.id, it: v }; })
       .concat(GRAMMAR.map(function (g) { return { kind: 'g', id: g.id, it: g }; }));
+  }
+
+  /** "v:12" → 該筆資料 */
+  var byKey = null;
+  function lookup(key) {
+    if (!byKey) {
+      byKey = {};
+      allItems().forEach(function (x) { byKey[x.kind + ':' + x.id] = x; });
+    }
+    return byKey[key];
+  }
+  /** 一個項目在日誌裡的簡短標籤 */
+  function keyLabel(key) {
+    var x = lookup(key);
+    if (!x) return N2.esc(key);
+    return x.kind === 'v'
+      ? N2.ruby(x.it.wordRuby) + '<span class="lg-zh">' + N2.esc(x.it.zh) + '</span>'
+      : N2.esc(x.it.pattern) + '<span class="lg-zh">' + N2.esc(x.it.meaning) + '</span>';
   }
 
   function counts() {
@@ -178,6 +200,126 @@
     return out;
   }
 
+  // ---------- 學習日誌 ----------
+  var WD = ['日', '一', '二', '三', '四', '五', '六'];
+  function fmtDate(k) {
+    var d = N2.parseDay(k);
+    return (d.getMonth() + 1) + '/' + d.getDate() +
+      '<span class="lg-wd">（' + WD[d.getDay()] + '）</span>';
+  }
+
+  /** 一列摘要：測驗題數、正確率、字卡張數、新學幾個 */
+  function summaryLine(s) {
+    var bits = [];
+    if (s.n) bits.push('測驗 ' + s.n + ' 題 · ' + s.pct + '%');
+    if (s.cardReps) bits.push('字卡 ' + s.cardReps + ' 張');
+    if (s.fresh.length) bits.push('新學 ' + s.fresh.length + ' 個');
+    return bits.join('　·　') || '—';
+  }
+
+  /** 展開後的明細：新學了哪些、字卡看了哪些、測驗了哪些及對錯 */
+  function detail(s) {
+    var h = '<div class="lg-detail">';
+
+    if (s.fresh.length) {
+      h += '<div class="lg-sec"><b>第一次碰到</b> <span class="muted">' +
+        s.fresh.length + ' 個</span></div><div class="lg-items">' +
+        s.fresh.map(function (k) {
+          return '<span class="lg-chip new">' + keyLabel(k) + '</span>';
+        }).join('') + '</div>';
+    }
+
+    var cardKeys = Object.keys(s.cards);
+    if (cardKeys.length) {
+      h += '<div class="lg-sec"><b>字卡</b> <span class="muted">' +
+        cardKeys.length + ' 個項目 · 共 ' + s.cardReps + ' 張</span></div>' +
+        '<div class="lg-items">' + cardKeys.map(function (k) {
+          var c = s.cards[k];
+          return '<span class="lg-chip">' + keyLabel(k) +
+            '<i class="lg-n">' + (c.n > 1 ? '×' + c.n : '') + '</i></span>';
+        }).join('') + '</div>';
+    }
+
+    var itemKeys = Object.keys(s.items);
+    if (itemKeys.length) {
+      // 錯得多的排前面，方便直接看出當天的弱點
+      itemKeys.sort(function (a, b) {
+        var wa = s.items[a].n - s.items[a].ok, wb = s.items[b].n - s.items[b].ok;
+        return wb - wa;
+      });
+      var typeBits = Object.keys(s.byType).map(function (t) {
+        var d = s.byType[t];
+        return (TYPE_NAME[t] || t) + ' ' + d.ok + '/' + d.n;
+      });
+      h += '<div class="lg-sec"><b>測驗</b> <span class="muted">' +
+        s.ok + ' 對 / ' + (s.n - s.ok) + ' 錯' +
+        (typeBits.length ? '　·　' + typeBits.join('、') : '') + '</span></div>' +
+        '<div class="lg-rows">' + itemKeys.map(function (k) {
+          var d = s.items[k], wrong = d.n - d.ok;
+          return '<div class="lg-row' + (wrong ? ' bad' : '') + '">' +
+            '<span class="lg-mark">' + (wrong ? '✗' : '✓') + '</span>' +
+            '<span class="lg-name">' + keyLabel(k) + '</span>' +
+            '<span class="lg-score">' + d.ok + '/' + d.n + '</span></div>';
+        }).join('') + '</div>';
+    }
+
+    if (!s.fresh.length && !cardKeys.length && !itemKeys.length) {
+      h += '<div class="muted" style="padding:8px 2px">這天沒有明細紀錄</div>';
+    }
+    return h + '</div>';
+  }
+
+  function logSection() {
+    var rows;
+    if (logView === 'week') {
+      rows = N2.weekStats().map(function (w) {
+        var open = openKey === w.key;
+        var d1 = N2.parseDay(w.key), d2 = N2.parseDay(w.end);
+        var title = (d1.getMonth() + 1) + '/' + d1.getDate() + '–' +
+          (d2.getMonth() + 1) + '/' + d2.getDate();
+        var s = {
+          n: w.n, ok: w.ok, pct: w.pct, cardReps: w.cardReps,
+          fresh: w.fresh, items: w.items, cards: w.cards, byType: {}
+        };
+        return '<div class="lg-entry' + (open ? ' open' : '') + '">' +
+          '<button class="lg-head" data-logkey="' + w.key + '">' +
+          '<span class="lg-date">' + title + '</span>' +
+          '<span class="lg-sum">' + summaryLine(s) + '</span>' +
+          '<span class="lg-days">' + w.days.length + ' 天</span>' +
+          '<span class="lg-caret">' + (open ? '▾' : '▸') + '</span></button>' +
+          (open ? '<div class="lg-week-days">' + w.days.map(function (d) {
+            return '<div class="lg-day-line"><span>' + fmtDate(d.key) + '</span>' +
+              '<span class="muted">' + summaryLine(d) + '</span></div>';
+          }).join('') + '</div>' + detail(s) : '') + '</div>';
+      });
+    } else {
+      rows = N2.usedDays().slice(0, 60).map(function (k) {
+        var s = N2.dayStat(k);
+        var open = openKey === k;
+        return '<div class="lg-entry' + (open ? ' open' : '') + '">' +
+          '<button class="lg-head" data-logkey="' + k + '">' +
+          '<span class="lg-date">' + fmtDate(k) + '</span>' +
+          '<span class="lg-sum">' + summaryLine(s) + '</span>' +
+          '<span class="lg-caret">' + (open ? '▾' : '▸') + '</span></button>' +
+          (open ? detail(s) : '') + '</div>';
+      });
+    }
+
+    var used = N2.usedDays();
+    return '<h3 style="margin:20px 0 10px">學習日誌 ' +
+      '<span class="muted">共 ' + used.length + ' 天有學習</span></h3>' +
+      '<div class="opts" style="margin-bottom:10px">' +
+      ['day', 'week'].map(function (v) {
+        return '<button class="opt" data-logview="' + v + '" aria-pressed="' +
+          (logView === v) + '">' + (v === 'day' ? '每日' : '每週') + '</button>';
+      }).join('') + '</div>' +
+      (rows.length
+        ? '<div class="card lg-list">' + rows.join('') + '</div>' +
+          (logView === 'day' && used.length > 60
+            ? '<div class="muted" style="margin-top:8px">只列出最近 60 天</div>' : '')
+        : '<div class="card"><div class="empty">還沒有學習紀錄</div></div>');
+  }
+
   // ---------- 統計頁 ----------
   function renderStats(root) {
     var c = counts(), t = totals();
@@ -197,9 +339,12 @@
     var delta = (a7.pct !== null && b7.pct !== null) ? a7.pct - b7.pct : null;
 
     // 熱力圖
+    // 熱力圖把字卡也算進活動量，只翻字卡的日子一樣會亮
     var heat = recentDays(42).map(function (d) {
-      var lv = d.n === 0 ? 0 : d.n < 10 ? 1 : d.n < 25 ? 2 : 3;
-      return '<i data-l="' + lv + '" title="' + d.k + '：' + d.n + ' 題"></i>';
+      var s = N2.dayStat(d.k);
+      var lv = s.total === 0 ? 0 : s.total < 10 ? 1 : s.total < 25 ? 2 : 3;
+      return '<i data-l="' + lv + '" title="' + d.k + '：測驗 ' + s.n +
+        ' 題、字卡 ' + s.cardReps + ' 張"></i>';
     }).join('');
 
     // 依題型
@@ -311,11 +456,16 @@
 
       '<h3 style="margin:20px 0 10px">最近六週</h3>' +
       '<div class="card" style="padding:14px 16px"><div class="heat">' + heat + '</div>' +
-      '<div class="muted" style="margin-top:8px">每格一天，顏色越深當天練得越多</div></div>';
+      '<div class="muted" style="margin-top:8px">每格一天，顏色越深當天練得越多</div></div>' +
+
+      logSection();
   }
 
   window.Stats = {
     renderHome: renderHome, renderStats: renderStats,
-    allItems: allItems, recentDays: recentDays
+    allItems: allItems, recentDays: recentDays,
+    setLogView: function (v) { logView = v; openKey = null; },
+    toggleLog: function (k) { openKey = (openKey === k) ? null : k; },
+    logState: function () { return { view: logView, open: openKey }; }
   };
 })();

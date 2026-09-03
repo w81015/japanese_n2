@@ -118,6 +118,18 @@
     var sp = t.closest('[data-speak]');
     if (sp) { N2.speak(sp.dataset.speak); return; }
 
+    // 學習日誌：切換每日／每週，或展開某一天
+    var lv = t.closest('[data-logview]');
+    if (lv) { Stats.setLogView(lv.dataset.logview); render(); return; }
+    var lk = t.closest('[data-logkey]');
+    if (lk) {
+      Stats.toggleLog(lk.dataset.logkey);
+      render();
+      var el = app.querySelector('[data-logkey="' + lk.dataset.logkey + '"]');
+      if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+      return;
+    }
+
     // 分頁
     var pg = t.closest('[data-page]');
     if (pg && (route === 'vocab' || route === 'grammar')) {
