@@ -441,6 +441,24 @@
     sort: function (kind, item) { return makeSort(kind, item); }
   };
 
+  // 一個項目可能有好幾句例句。這幾個欄位是「跟著句子走」的，
+  // 換句子就整組換掉，其餘欄位（word、zh、wrongKanji…）維持不變。
+  var EX_FIELDS = ['ex', 'exZh', 'exEn', 'clozeIdx', 'clozeAnswer', 'clozeKana', 'clozeTail'];
+
+  /** 隨機挑一句，回傳把該句欄位覆寫上去的複本；只有一句就原封不動 */
+  function withSentence(item, n) {
+    var list = item.exs;
+    if (!list || list.length < 2) return item;
+    var s = list[n == null ? Math.floor(Math.random() * list.length) : n % list.length];
+    var o = {}, k;
+    for (k in item) o[k] = item[k];
+    for (var i = 0; i < EX_FIELDS.length; i++) {
+      if (s[EX_FIELDS[i]] !== undefined) o[EX_FIELDS[i]] = s[EX_FIELDS[i]];
+    }
+    o.exUse = s.use || 'core';
+    return o;
+  }
+
   function build() {
     var p = pool();
     if (!p.items.length) return [];
@@ -453,9 +471,11 @@
       var item = src[idx % src.length]; idx++;
       var t = makers[Math.floor(Math.random() * makers.length)];
       var k = Decks.kindOf(p.kind);
-      var q = MAKERS[t](k, item, p.items);
+      // 漢字読み與表記的底線位置是照第一句算出來的，換句子會對不上，維持原句
+      var it = (t === 'reading' || t === 'writing') ? item : withSentence(item);
+      var q = MAKERS[t](k, it, p.items);
       // 這一題做不出來（例如詞塊太少、湊不到誘答）就退回別的題型
-      if (!q) q = makeClozeMC(k, item, p.items) || makeMC(k, item, p.items);
+      if (!q) q = makeClozeMC(k, it, p.items) || makeMC(k, it, p.items);
       if (q) q.deck = p.kind;
       qs.push(q);
     }
@@ -779,6 +799,7 @@
   function next() { run.i++; run.answered = false; }
 
   window.Quiz = {
+    withSentence: withSentence,
     cfg: cfg, render: render, start: start, next: next, check: check,
     answerMC: answerMC, paintSort: paintSort, isChoice: isChoice,
     misreadings: misreadings,

@@ -31,15 +31,28 @@
   }
 
   /** 例句區塊：日文 + 朗讀鈕 + 中譯 + 英譯 */
-  function exBlock(anno, zh, en) {
+  var USE_TAG = { exam: '考試', life: '生活' };
+
+  function exBlock(anno, zh, en, use) {
     if (!S.showEx) return '';
     return '<div class="ex">' +
       '<button class="mini ex-speak" data-speak="' + N2.esc(N2.plain(anno)) +
       '" title="朗讀例句">🔊</button>' +
+      (USE_TAG[use] ? '<div><span class="ex-use">' + USE_TAG[use] + '</span></div>' : '') +
       '<div class="ex-jp">' + N2.ruby(anno) + '</div>' +
       (S.showZh && zh ? '<span class="exzh">' + N2.esc(zh) + '</span>' : '') +
       (S.showEn && en ? '<span class="exen">' + N2.esc(en) + '</span>' : '') +
       '</div>';
+  }
+
+  /** 一個項目的全部例句；沒有 exs 的題庫就退回單句 */
+  function allEx(x) {
+    if (x.exs && x.exs.length) {
+      return x.exs.map(function (s) {
+        return exBlock(s.ex, s.exZh, s.exEn, s.use);
+      }).join('');
+    }
+    return x.ex ? exBlock(x.ex, x.exZh, x.exEn) : '';
   }
 
   /** 分頁列：1–10、11–20 … */
@@ -108,7 +121,7 @@
       '<div class="jp">' + N2.ruby(v.wordRuby || v.word) + '</div>' +
       (S.showZh ? '<div class="zh">' + N2.esc(v.zh) + '</div>' : '') +
       (S.showEn && v.en ? '<div class="en">' + N2.esc(v.en) + '</div>' : '') +
-      (v.ex ? exBlock(v.ex, v.exZh, v.exEn)
+      (v.ex ? allEx(v)
             : '<div class="muted no-ex">（這個題庫沒有例句）</div>') +
       '</article>';
   }
@@ -211,7 +224,7 @@
         (S.showZh && S.showEn && g.noteEn ? '<br>' : '') +
         (S.showEn && g.noteEn ? '<i>Note: ' + N2.esc(g.noteEn) + '</i>' : '') + '</div>';
     }
-    return h + (g.ex ? exBlock(g.ex, g.exZh, g.exEn) : '') + '</article>';
+    return h + allEx(g) + '</article>';
   }
 
   function renderGrammar(root) {

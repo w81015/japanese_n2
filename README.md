@@ -88,7 +88,11 @@ N2 單字與文法的離線學習網站。純靜態（HTML / CSS / 原生 JS）�
 | 自動朗讀 | 進入卡片／作答後自動用日文語音唸出來 |
 
 中譯和 EN 是各自獨立的開關，可以只看英文、只看中文，或兩個都關掉做盲測。
-全部 204 個例句都有中英雙譯，每句旁邊都有獨立的朗讀鈕。
+每一句例句都有中英雙譯與獨立的朗讀鈕。
+
+**一個單字可以有很多句例句**，分成「考試」與「生活」兩種語感，瀏覽頁會全部列出並標明用途。
+出題時會隨機挑一句，所以同一個單字連續考到也不會是同一題。目前 20 個單字各有 3 句，
+其餘 102 個各 1 句；新增只要編輯 `data/sentences.csv`，振假名是自動產生的（見下方資料格式）。
 
 **其他**
 
@@ -237,6 +241,40 @@ Vercel 上生效，本機開檔案不會被它擋。
 遷移是依「內容」而非版本號判斷，所以重複開啟不會重跑，也不會漏掉。
 注意：過去的作答補不回時間與題型，趨勢圖與題型分析從升級後才開始累積。
 
+### 例句：一個項目可以有很多句
+
+每個單字／文法的例句放在 `exs` 陣列裡，每一句自己帶翻譯與挖空位置：
+
+```js
+exs: [
+  { ex: "彼{かれ}の/発言{はつげん}は/…", exZh: "…", exEn: "…", use: "core",
+    clozeIdx: 4, clozeAnswer: "影響", clozeKana: "えいきょう", clozeTail: "を" },
+  { …, use: "exam" },   // 考試會用的句子
+  { …, use: "life" }    // 生活旅遊會用的句子
+]
+```
+
+挖空位置必須每句各算一次——同一個單字在不同句子裡的文節位置與後面的助詞都不同。
+
+`exs[0]` 是原本那一句，頂層的 `ex` / `exZh` / `exEn` / `cloze*` 仍然指向它，
+所以既有程式一行都不用改。出題時 `Quiz.withSentence()` 會隨機挑一句覆寫這些欄位，
+同一個單字連續考到也不會是同一題。**漢字読み與表記例外**，這兩種題型的底線位置
+是照第一句算出來的，換句子會對不上，所以固定用 `exs[0]`。
+
+新增例句只要編輯 `data/sentences.csv`：
+
+```csv
+deck,id,use,ja,zh,en
+v,1,exam,円安の影響で、輸入品の値段が上がっている。,受日圓貶值的影響…,Because of the weak yen…
+```
+
+只填手打的部分。**振假名與文節不要寫進 csv**，由 `tools/furigana.py` 產生，
+挖空位置由 `gen_data.py` 算，這樣不會有兩份互相矛盾的資料。改完跑：
+
+```bash
+cd tools && python3 gen_data.py
+```
+
 ### 例句標注規則
 
 例句用一個字串同時表達三件事：
@@ -258,6 +296,8 @@ Vercel 上生效，本機開檔案不會被它擋。
 - `anno.py` — 例句的假名／斷詞標注表（手寫，逐句對照）
 - `trans.py` — 例句中英翻譯、文法的英文意思與注意事項（手寫）
 - `kanji.py` — 表記題的誘答漢字，每個含漢字的單字各 3 個同音／形近錯字（手寫）
+- `furigana.py` — 自動上振假名與文節（MeCab）。含例外對照表；直接執行會拿現有
+  204 句手寫標注當回歸測試，目前原文還原與整句讀音都是 100%
 - `gen_data.py` — 合併、驗證標注、計算填空位置，輸出 `data/*.js`
 - `pdf_past.py` — 抽考古題。靠字級與座標分辨內文（11.3pt）、振假名（5.6pt）、
   題號（9.2pt）與側邊直排標籤；卷面的底線用「線上面有沒有字」分成兩種——
@@ -266,7 +306,7 @@ Vercel 上生效，本機開檔案不會被它擋。
 - `gen_past.py` — 合併題目與答案、驗證，輸出 `data/past.js`
 
 ```bash
-pip install openpyxl pdfplumber
+pip install openpyxl pdfplumber fugashi unidic-lite
 
 # 精選題庫（122 單字 / 82 文法）
 cd tools && python3 parse.py && python3 gen_data.py
@@ -292,11 +332,11 @@ python3 pdf_past.py && python3 gen_past.py
 
 ### 測試
 
-`tools/` 裡另外有十三支測試，改完程式或資料後跑一次：
+`tools/` 裡另外有十四支測試，改完程式或資料後跑一次：
 
 ```bash
 npm i jsdom
-npm test               # 一次跑完下面十三支
+npm test               # 一次跑完下面十四支
 
 node tools/auth.js     # 登入保護：未設定不啟用、登入表單、cookie 簽章與偽造、轉址跳板
 node tools/audit.js    # 全站互動稽核：CSS 可見性、五個分頁、篩選、字卡、測驗、統計、設定
@@ -308,6 +348,7 @@ node tools/review.js   # 複習排程：舊紀錄遷移、Leitner 間隔、到�
 node tools/journal.js  # 學習日誌：逐項明細、使用日期、每週彙整、展開收合、舊紀錄相容
 node tools/cloze.js    # 挖空四選一品質：選項不重複、誘答不模稜兩可、題幹不洩漏答案
 node tools/kanji.js    # 漢字読み／表記：誘答是合法假名、送假名一致、題幹不洩漏答案、字卡四方向
+node tools/sentences.js # 多例句：資料完整性、測驗會換句子、瀏覽列出全部、判分不受影響
 node tools/past.js     # 考古題：54 題資料完整性、作答流程、校對正解、與首頁統計日誌的串接
 node tools/judge.js    # 判分正確性：204 題填空、165 題排序
 node tools/t.js        # 出題引擎壓力測試：1200 題
@@ -330,8 +371,9 @@ n2-site/
 │   ├── stats.js            首頁（今天該練什麼）與統計頁（趨勢、弱點拆解）
 │   └── app.js              路由、全域事件、設定面板行為
 ├── data/                   學習資料（vocab / grammar / vocab_list / grammar_list / past）
+│   └── sentences.csv       額外例句的手打來源，注音由腳本產生
 ├── js/decks.js             題庫登記表
-├── tools/                  資料產生腳本 + 十三支自動測試
+├── tools/                  資料產生腳本 + 十四支自動測試
 ├── middleware.js           Vercel 上的登入保護（登入頁 + 簽名 cookie）
 ├── manifest.webmanifest    PWA
 └── vercel.json             部署設定

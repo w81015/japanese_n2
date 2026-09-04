@@ -498,3 +498,11 @@ svg.trend{width:100%;height:150px;display:block;overflow:visible}
 /* 目前這一題用外框標示，才不會蓋掉答對／答錯的顏色 */
 .jump.on{box-shadow:0 0 0 2px var(--brand)}
 .jump.on:not(.ok):not(.ng){background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+
+/* 例句的用途標籤（考試／生活）。放在句子上方一行，不跟朗讀鈕搶位置 */
+.ex-use{
+  display:inline-block;margin-bottom:3px;font-size:.68rem;font-weight:700;
+  color:var(--ink-3);background:var(--panel);border:1px solid var(--line);
+  border-radius:999px;padding:0 7px;line-height:1.6
+}
+.entry .ex + .ex{margin-top:8px}

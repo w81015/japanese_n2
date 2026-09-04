@@ -1,0 +1,41 @@
+deck,id,use,ja,zh,en
+v,1,exam,円安の影響で、輸入品の値段が上がっている。,受日圓貶值的影響，進口商品的價格正在上漲。,"Because of the weak yen, the price of imported goods is rising."
+v,1,life,台風の影響で、電車が止まっているみたいです。,受颱風影響，電車好像停駛了。,It seems the trains have stopped because of the typhoon.
+v,2,exam,十年の経験を持つ技術者が、この工場を支えている。,擁有十年經驗的技術人員支撐著這座工廠。,Engineers with ten years of experience keep this factory running.
+v,2,life,京都は初めてだったので、とてもいい経験になりました。,因為是第一次去京都，成了很好的經驗。,It was my first time in Kyoto, so it was a really good experience.
+v,3,exam,現地の状況を確認したうえで、支援の内容を決めたい。,希望在確認當地狀況之後，再決定支援的內容。,"We want to confirm the situation on the ground, then decide what aid to give."
+v,3,life,道が混んでいる状況なので、地下鉄で行きましょう。,路上塞車，我們搭地鐵去吧。,"The roads are jammed, so let's take the subway."
+v,4,exam,この会社は苦情への対応が早いと評価されている。,這家公司因處理客訴迅速而受到好評。,This company is praised for how quickly it responds to complaints.
+v,4,life,このホテルは英語での対応もできるそうです。,聽說這家飯店也能用英語應對。,I hear this hotel can also help you in English.
+v,5,exam,限られた情報だけで判断するのは危険だ。,只憑有限的資訊就下判斷是危險的。,It is dangerous to judge based only on limited information.
+v,5,life,明日の天気を見てから、行くかどうか判断しよう。,看過明天的天氣之後，再判斷去不去吧。,"Let's check tomorrow's weather, then decide whether to go."
+v,6,exam,昨年に比べ、外国人観光客が大幅に増加した。,與去年相比，外國觀光客大幅增加。,"Compared with last year, the number of foreign tourists has risen sharply."
+v,6,life,この時期は観光客が増加するので、早めに予約したほうがいい。,這個時期觀光客會增加，最好早點訂位。,"Tourist numbers go up around this time, so you should book early."
+v,7,exam,少子化により、地方の人口は年々減少している。,由於少子化，地方的人口正逐年減少。,"Due to the falling birth rate, rural populations are shrinking year by year."
+v,7,life,最近は現金で払う人が減少しているらしい。,最近用現金付款的人好像變少了。,Apparently fewer and fewer people pay in cash these days.
+v,8,exam,この設備を維持するには、多額の費用がかかる。,要維持這項設備需要龐大的費用。,Maintaining this equipment costs a great deal of money.
+v,8,life,体力を維持するために、毎朝散歩しています。,為了維持體力，我每天早上散步。,I take a walk every morning to keep my strength up.
+v,9,exam,サービスの質を改善しない限り、客は戻らないだろう。,除非改善服務品質，否則客人是不會回來的。,"Unless the quality of service improves, the customers will not come back."
+v,9,life,部屋の匂いが気になるので、改善してもらえますか。,房間的味道讓我有點在意，可以幫忙改善嗎？,"The smell in the room bothers me, could you do something about it?"
+v,10,exam,この町は古くから港を中心に発展してきた。,這個城鎮自古以來就以港口為中心發展起來。,This town has developed around its harbour since long ago.
+v,10,life,しばらく来ないうちに、駅前がずいぶん発展しましたね。,一段時間沒來，車站前發展了不少呢。,"The area in front of the station has really developed while I've been away, hasn't it?"
+v,11,exam,スマートフォンの普及によって、人々の生活は大きく変わった。,隨著智慧型手機的普及，人們的生活有了很大的改變。,"With the spread of smartphones, people's lives have changed greatly."
+v,11,life,この国ではキャッシュレス決済が普及しているので、現金はあまり使いません。,這個國家無現金支付很普及，所以不太用現金。,"Cashless payment is widespread in this country, so I rarely use cash."
+v,12,exam,来月から新しい制度が実施されることになった。,決定從下個月起實施新制度。,It has been decided that the new system will take effect next month.
+v,12,life,工事を実施中のため、この道は通れません。,因為正在施工，這條路無法通行。,"Construction is under way, so this road is closed."
+v,13,exam,ご提案の件は、社内で検討させていただきます。,關於您提案的事，我們會在公司內部研究。,We will consider your proposal internally.
+v,13,life,どのプランがいいか、もう少し検討してから決めます。,哪個方案好，我再研究一下才決定。,"I'll think it over a bit more, then decide which plan to take."
+v,14,exam,環境問題については、今も議論が続いている。,關於環境問題，至今仍持續在討論。,"As for environmental issues, the debate still continues."
+v,14,life,旅行の行き先をめぐって、家族と議論になってしまった。,為了旅行的目的地，跟家人爭論了起來。,I ended up arguing with my family over where to go on the trip.
+v,15,exam,彼は最後まで自分の意見を主張し続けた。,他到最後仍持續主張自己的意見。,He went on asserting his own opinion right to the end.
+v,15,life,言いたいことがあるなら、はっきり主張したほうがいいよ。,如果有話想說，最好明確地講出來喔。,"If you have something to say, you should come out and say it."
+v,16,exam,データが不足しているため、結論を出すのはまだ早い。,由於資料不足，現在下結論還太早。,"Data is still lacking, so it is too early to draw a conclusion."
+v,16,life,話し合った結果、今回は行かないという結論になりました。,討論的結果，得出這次不去的結論。,"After talking it over, we concluded that we won't go this time."
+v,17,exam,事故の原因については現在調査中である。,關於事故的原因目前正在調查中。,The cause of the accident is currently under investigation.
+v,17,life,お腹が痛い原因は、たぶん昨日の刺身だと思う。,肚子痛的原因，大概是昨天的生魚片。,I think the cause of my stomach ache is probably yesterday's sashimi.
+v,18,exam,この製品の最大の特徴は、軽くて丈夫なことだ。,這項產品最大的特徵是又輕又耐用。,The greatest feature of this product is that it is light and sturdy.
+v,18,life,このお菓子は、甘さが控えめなのが特徴です。,這款點心的特色是甜度不高。,These sweets are characterised by not being too sweet.
+v,19,exam,条件さえ合えば、この土地を買いたいと考えている。,只要條件相符，我就想買下這塊地。,"If the conditions are right, I am thinking of buying this land."
+v,19,life,学生証を見せることが割引の条件だそうです。,聽說出示學生證是折扣的條件。,Apparently showing your student ID is the condition for the discount.
+v,20,exam,一人あたりの購入数に制限を設けることにした。,決定對每人的購買數量設下限制。,We have decided to set a limit on how many each person may buy.
+v,20,life,荷物の重さに制限があるので、量ってみましょう。,行李的重量有限制，我們來量看看吧。,"There's a limit on baggage weight, so let's weigh it."

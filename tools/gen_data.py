@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import json, re, os, sys
+import csv, json, re, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -9,6 +9,59 @@ from kanji import WRONG_KANJI
 
 OUT = os.path.join(HERE, "..", "data")
 os.makedirs(OUT, exist_ok=True)
+
+CSV_PATH = os.path.join(OUT, "sentences.csv")
+USES = {"exam", "life"}
+
+
+def load_sentences():
+    """
+    讀 data/sentences.csv 的額外例句，自動上振假名。
+
+    csv 只放手打的部分（deck / id / use / 日文 / 中文 / 英文），
+    振假名與文節由 tools/furigana.py 產生，挖空位置由後面的 sentence_rec 算，
+    所以表格裡不會有兩份互相矛盾的資料。
+
+    這裡是一道關卡：任何一句標注不合格就中止，不會產出壞資料。
+    """
+    if not os.path.exists(CSV_PATH):
+        return {}
+    try:
+        import furigana
+    except SystemExit:
+        sys.exit("data/sentences.csv 存在，但缺少 MeCab：pip install fugashi unidic-lite")
+
+    out, bad = {}, []
+    with open(CSV_PATH, encoding="utf-8") as f:
+        for n, row in enumerate(csv.DictReader(f), start=2):
+            if not row.get("ja", "").strip():
+                continue
+            where = f"sentences.csv 第 {n} 行"
+            deck, ja = row["deck"].strip(), row["ja"].strip()
+            if deck not in ("v", "g"):
+                bad.append(f"{where}：deck 只能是 v 或 g，寫了 {deck}"); continue
+            if not row["id"].strip().isdigit():
+                bad.append(f"{where}：id 不是數字"); continue
+            use = row.get("use", "").strip() or "exam"
+            if use not in USES:
+                bad.append(f"{where}：use 只能是 {'／'.join(sorted(USES))}"); continue
+            if not row.get("zh", "").strip() or not row.get("en", "").strip():
+                bad.append(f"{where}：缺中文或英文翻譯"); continue
+
+            anno = furigana.annotate(ja)
+            if furigana.plain(anno) != ja:
+                bad.append(f"{where}：標注後原文對不回來\n    {ja}\n    {anno}"); continue
+            problems = furigana.check(anno)
+            if problems:
+                bad.append(f"{where}：{'；'.join(problems)}\n    {anno}"); continue
+
+            out.setdefault((deck, int(row["id"])), []).append(
+                {"anno": anno, "zh": row["zh"].strip(),
+                 "en": row["en"].strip(), "use": use})
+    if bad:
+        print("\n".join("SENTENCE-ERR " + b for b in bad))
+        sys.exit(f"\n{len(bad)} 句例句沒通過檢查，沒有產生檔案")
+    return out
 
 vocab = json.load(open(os.path.join(HERE, "vocab_raw.json"), encoding="utf-8"))
 gram = json.load(open(os.path.join(HERE, "gram_raw.json"), encoding="utf-8"))
@@ -100,24 +153,59 @@ def split_tail(anno_chunk, stem):
 
 HAS_KANJI = re.compile(r"[一-鿿]")
 
+
+def sentence_rec(anno, word, stem, zh, en, use):
+    """
+    一句例句的完整紀錄：標注、翻譯、以及這句自己的挖空位置。
+    每句都要各算一次挖空，因為同一個單字在不同句子裡的位置與後綴都不同。
+    """
+    idx = find_chunk(anno, [word, stem])
+    chunk = anno.split("/")[idx]
+    head, tail = split_tail(chunk, stem)
+    if plain_of(head) + tail != plain_of(chunk):
+        return None, (word, chunk, head, tail)
+    return {
+        "ex": anno, "exZh": zh, "exEn": en, "use": use,
+        "clozeIdx": idx, "clozeAnswer": plain_of(head),
+        "clozeKana": kana_of(head), "clozeTail": tail,
+    }, None
+
+
+# ---------- 額外例句（data/sentences.csv）----------
+EXTRA = load_sentences()
+
 VOC = []
 tail_errs = []
 kanji_errs = []
 for v in vocab:
     anno = VOCAB_ANNO[v["id"]]
     stem = re.sub("[" + KANA + "]+$", "", v["word"]) or v["word"]
-    idx = find_chunk(anno, [v["word"], stem])
-    chunk = anno.split("/")[idx]
-    head, tail = split_tail(chunk, stem)
-    if plain_of(head) + tail != plain_of(chunk):
-        tail_errs.append((v["id"], chunk, head, tail))
+    first, err = sentence_rec(anno, v["word"], stem,
+                              VOCAB_TRANS[v["id"]][0], VOCAB_TRANS[v["id"]][1], "core")
+    if err:
+        tail_errs.append((v["id"],) + err[1:])
+        continue
+
+    # exs[0] 就是原本那句，頂層的 ex／cloze* 欄位照舊指向它，
+    # 所以既有的程式一行都不用改
+    exs = [first]
+    for row in EXTRA.get(("v", v["id"]), []):
+        rec2, err2 = sentence_rec(row["anno"], v["word"], stem,
+                                  row["zh"], row["en"], row["use"])
+        if err2:
+            tail_errs.append((v["id"],) + err2[1:])
+        else:
+            exs.append(rec2)
+
     rec = {
         "id": v["id"], "group": v["group"], "pos": v["pos"],
         "word": v["word"], "wordRuby": head_anno(v["word"], v["reading"]),
         "reading": v["reading"], "en": v["en"], "zh": v["zh"],
         "ex": anno, "exZh": VOCAB_TRANS[v["id"]][0], "exEn": VOCAB_TRANS[v["id"]][1],
-        "clozeIdx": idx,
-        "clozeAnswer": plain_of(head), "clozeKana": kana_of(head), "clozeTail": tail,
+        "clozeIdx": first["clozeIdx"],
+        "clozeAnswer": first["clozeAnswer"], "clozeKana": first["clozeKana"],
+        "clozeTail": first["clozeTail"],
+        "exs": exs,
     }
 
     # ---- 日檢問題1（漢字読み）／問題2（表記）用的欄位 ----
